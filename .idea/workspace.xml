@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2" beforeDir="false" afterPath="$PROJECT_DIR$/pancakeswap-sdk-v2" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/constants.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/token.ts" beforeDir="false" afterPath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/token.ts" afterDir="false" />
@@ -86,7 +85,7 @@
       <workItem from="1622067208639" duration="1422000" />
       <workItem from="1622099800182" duration="22000" />
       <workItem from="1622135753980" duration="12806000" />
-      <workItem from="1622217739228" duration="40842000" />
+      <workItem from="1622217739228" duration="41098000" />
     </task>
     <servers />
   </component>
