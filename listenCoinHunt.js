@@ -225,7 +225,7 @@ async function waitProfitableCoin(logNewCoins){
         //console.log("nouveaux coins détecté")
         let coins = await getLowMarketCapCoins(true, logNewCoins)
         //let coins = await getSomeCoins()
-        console.log(coins)
+        //console.log(coins)
         coins.map(async (coin) => {
             //console.log(coin.name + "    " + coin.contracts[0].value + "  " + coin.marketCap)
             if(!coin.contracts[0].value.includes("https")){

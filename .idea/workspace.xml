@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/abis/erc20.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/abis/pancake.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/listenCoinHunt.js" beforeDir="false" afterPath="$PROJECT_DIR$/listenCoinHunt.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/constants.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/token.ts" beforeDir="false" afterPath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/token.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/trade.ts" beforeDir="false" afterPath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/trade.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/router.ts" beforeDir="false" afterPath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/router.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/swap.js" beforeDir="false" afterPath="$PROJECT_DIR$/swap.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1sOzkWPQa9bMlTYntS4XyLEBvLZ" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/abis" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="ts.external.directory.path" value="$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/abis" />
+      <recent name="$PROJECT_DIR$/node_modules/@pancakeswap-libs/sdk-v2/dist" />
+      <recent name="$PROJECT_DIR$/node_modules/@pancakeswap-libs/sdk-v2" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/contracts" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/contracts" />
+      <recent name="$PROJECT_DIR$/contracts/pancake/router" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="" />
+      <created>1620758566927</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1620758566927</updated>
+      <workItem from="1620758568055" duration="11952000" />
+      <workItem from="1620833542953" duration="3725000" />
+      <workItem from="1620847255772" duration="35677000" />
+      <workItem from="1621003872336" duration="20747000" />
+      <workItem from="1621083562383" duration="14243000" />
+      <workItem from="1621157498830" duration="30277000" />
+      <workItem from="1621336066106" duration="29263000" />
+      <workItem from="1621444202305" duration="5869000" />
+      <workItem from="1621498030171" duration="18024000" />
+      <workItem from="1621589489453" duration="609000" />
+      <workItem from="1621626256781" duration="282000" />
+      <workItem from="1621633090573" duration="6174000" />
+      <workItem from="1621682430992" duration="1746000" />
+      <workItem from="1621716079160" duration="5871000" />
+      <workItem from="1621722304216" duration="49638000" />
+      <workItem from="1621966170166" duration="6989000" />
+      <workItem from="1621976057760" duration="3832000" />
+      <workItem from="1622055712787" duration="6725000" />
+      <workItem from="1622066079203" duration="562000" />
+      <workItem from="1622067208639" duration="1422000" />
+      <workItem from="1622099800182" duration="22000" />
+      <workItem from="1622135753980" duration="12806000" />
+      <workItem from="1622217739228" duration="40620000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+</project>
