@@ -1,13 +1,15 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const resolve = require('path').resolve
 import Web3 from 'web3'
 import ethers from 'ethers'
 import ERC20 from './abis/erc20.js'
 import PANCAKE from './abis/pancake.js'
 import WBNB from './abis/wbnb.js'
 import approveSpender from "./abis/approveSpender.js";
-import config from './config.js'
+import config from '../config.js'
 const mainNet = 'https://bsc-dataseed.binance.org/'
 const mainNetSocket = 'wss://bsc-ws-node.nariox.org:443'
-
 const quickHttp = 'https://purple-weathered-moon.bsc.quiknode.pro/4aca6a71de78877d5bdfeeaf9d5e14ef2da63250/'
 const quickSocket = 'wss://purple-weathered-moon.bsc.quiknode.pro/4aca6a71de78877d5bdfeeaf9d5e14ef2da63250/'
 
@@ -18,11 +20,10 @@ const testNet = 'https://data-seed-prebsc-1-s1.binance.org:8545/'
 const ganacheFork = 'http://127.0.0.1:7545'
 const ganacheForkSocket = 'ws://127.0.0.1:8545'
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+
 const txDecoder = require('ethereum-tx-decoder');
 const InputDataDecoder = require('ethereum-input-data-decoder');
-const decoder = new InputDataDecoder('./abis/pancake.json');
+const decoder = new InputDataDecoder(resolve('./factory/abis/pancake.json'));
 
 import { JSBI, WETH as WETHs, ETHER, Fraction, Pair, Price, Percent, Trade, TradeType, Route, ChainId, Currency, CurrencyAmount, Router, Fetcher, TokenAmount, Token  } from './pancakeswap-sdk-v2/dist/index.js'
 import pancake from "./abis/pancake.js";
@@ -30,8 +31,9 @@ import {Contract} from "@ethersproject/contracts";
 const Tx = require('ethereumjs-tx').Transaction
 import Common from 'ethereumjs-common';
 
+const BIPS_BASE = JSBI.BigInt(100)
 
-class SwapFactory {
+export default class SwapFactory {
 
     constructor(mode, account, privateKey) {
         if(mode === "test"){
@@ -113,6 +115,10 @@ class SwapFactory {
             spender = options.spender
         }
         switch(methodName){
+            case "getAmountsIn":
+            case "getAmountsOut":
+                resultOfCall = await contractInstance[methodName](options.balanceTokenIn, [options.tokenIn, options.tokenOut])
+                break;
             case "deposit":
                 resultOfCall = await contractInstance[methodName](options)
                 break;
@@ -157,12 +163,14 @@ class SwapFactory {
         if(this.mode === "test"){
             return new Token(ChainId.BSCTESTNET, address, decimals)
         }
+        if(this.WBNB == address){
+            return ETHER
+        }
         return new Token(ChainId.MAINNET, address, decimals)
     }
 
-    async fetchPair(tokenIn, tokenOut, tokenInDecimals, tokenOutDecimals){
-        let inputTokenInstance = await this.getToken(tokenIn, tokenInDecimals)
-        let outputTokenInstance = await this.getToken(tokenOut, tokenOutDecimals)
+    async fetchPair(inputTokenInstance, outputTokenInstance){
+
         let pair = await Fetcher.fetchPairData(inputTokenInstance, outputTokenInstance, this.provider)
         const route = new Route([pair], WETHs[inputTokenInstance.chainId])
 
@@ -177,7 +185,7 @@ class SwapFactory {
     }
 
     async parseAmount(value, currency, tokenContractInstance){
-        const decimals = await swapFactory.callContractMethod(tokenContractInstance, 'decimals')
+        const decimals = await this.callContractMethod(tokenContractInstance, 'decimals')
         const typedValueParsed = ethers.utils.parseUnits(value, decimals).toString()
         if (typedValueParsed !== '0') {
             return currency instanceof Token
@@ -194,7 +202,7 @@ class SwapFactory {
     }
 
     async parseToken(value, tokenInstance, tokenContractInstance){
-        const decimals = await swapFactory.callContractMethod(tokenContractInstance, 'decimals')
+        const decimals = await this.callContractMethod(tokenContractInstance, 'decimals')
         const typedValueParsed = ethers.utils.parseUnits(value, decimals).toString()
         if (typedValueParsed !== '0') {
             return new TokenAmount(tokenInstance, JSBI.BigInt(typedValueParsed))
@@ -204,7 +212,7 @@ class SwapFactory {
 
     readableValue(value, decimals){
         let customValue = value / Math.pow(10, decimals)
-        return customValue.toFixed(4)
+        return customValue.toFixed(6) // attention j'ai modifier ici, avant c'etait 4
     }
 
     readableBnb(value){
@@ -214,7 +222,7 @@ class SwapFactory {
 
     async makeDepositOfWBNB(tokenInContractInstance, inputAmount){
         try{
-            const deposit = await swapFactory.callContractMethod(tokenInContractInstance, "deposit", { value: `0x${inputAmount.raw.toString(16)}` })
+            const deposit = await this.callContractMethod(tokenInContractInstance, "deposit", { value: `0x${inputAmount.raw.toString(16)}` })
             const waitDeposit = await deposit.wait()
         }catch(err){
             console.log('deposit failed', err)
@@ -225,24 +233,27 @@ class SwapFactory {
     }
 
     async checkTokenBalance(tokenContractInstance, tokenInstance, readable){
-        const balanceOfToken = await swapFactory.callContractMethod(tokenContractInstance, 'balanceOf', this.recipient)
+        const balanceOfToken = await this.callContractMethod(tokenContractInstance, 'balanceOf', this.recipient)
+        console.log(this.recipient)
+        console.log('balacne', balanceOfToken)
         if(tokenContractInstance.address === this.WBNB){
             if(balanceOfToken.isZero()){
                 console.log('Aucun WBNB disponible pour le trade')
-                process.exit()
+                return
+                //process.exit()
             }
             if(readable){
-                const balance = await swapFactory.parseCurrency(balanceOfToken.toString())
-                return await swapFactory.formatAmount(balance)
+                const balance = await this.parseCurrency(balanceOfToken.toString())
+                return await this.formatAmount(balance)
             }
-            return await swapFactory.parseCurrency(balanceOfToken.toString())
+            return await this.parseCurrency(balanceOfToken.toString())
         }
 
         if(readable){
-            const balance = await swapFactory.parseToken(balanceOfToken.toString(), tokenInstance, tokenContractInstance)
-            return await swapFactory.formatAmount(balance)
+            const balance = await this.parseToken(balanceOfToken.toString(), tokenInstance, tokenContractInstance)
+            return await this.formatAmount(balance)
         }
-        return await swapFactory.parseToken(balanceOfToken.toString(), tokenInstance, tokenContractInstance)
+        return await this.parseToken(balanceOfToken.toString(), tokenInstance, tokenContractInstance)
     }
 
     async approveIfNeeded(tokenInContractInstance, paidTokenInContractInstance, value, gasLimit, gasPrice){
@@ -270,7 +281,7 @@ class SwapFactory {
 
     async getTradeOptions(allowedSlippage, feeOnTransfer = false){
         return {
-            allowedSlippage: new Percent(JSBI.BigInt(allowedSlippage), config.BIPS_BASE),
+            allowedSlippage: new Percent(JSBI.BigInt(allowedSlippage), BIPS_BASE),
             ttl: 60 * 20,
             recipient: await this.checkSum(this.recipient),
             feeOnTransfer: feeOnTransfer
@@ -290,23 +301,20 @@ class SwapFactory {
         return ethers.utils.getAddress(address)
     }
 
-
-
-    async swap(typeOfSwap = null, tokenIn, tokenOut, value, allowedSlippage = 12, gasPrice, gasLimit){
+    async swap(typeOfSwap = null, tokenIn, tokenOut, value, allowedSlippage = 12, gasPrice, gasLimit, feeOnTransfer = false){
 
         //Contracts
-        const tokenInContractInstance =  await swapFactory.getFreeContractInstance(tokenIn, ERC20)
-        const paidTokenInContractInstance = await swapFactory.getPaidContractInstance(tokenIn, ERC20, this.signer)
-        const tokenOutContractInstance = await swapFactory.getFreeContractInstance(tokenOut, ERC20)
-        const routerContractInstance =  await swapFactory.getPaidContractInstance(this.router, PANCAKE, this.signer)
+        const tokenInContractInstance =  await this.getFreeContractInstance(tokenIn, ERC20)
+        const paidTokenInContractInstance = await this.getPaidContractInstance(tokenIn, ERC20, this.signer)
+        const tokenOutContractInstance = await this.getFreeContractInstance(tokenOut, ERC20)
+        const routerContractInstance =  await this.getPaidContractInstance(this.router, PANCAKE, this.signer)
 
         //Tokens
         const tokenInDecimals = await this.callContractMethod(tokenInContractInstance, "decimals")
         const tokenOutDecimals = await this.callContractMethod(tokenOutContractInstance, "decimals")
         const tokenInInstance = new Token(this.chain, tokenIn, tokenInDecimals)
         const tokenOutInstance = new Token(this.chain, tokenOut, tokenOutDecimals)
-
-        let pairData = await this.fetchPair(tokenIn, tokenOut, tokenInDecimals, tokenOutDecimals)
+        let pairData = await this.fetchPair(tokenInInstance, tokenOutInstance)
         //Pair and route
         const pair = pairData.pair
         const route = new Route([pair], tokenInInstance)
@@ -318,8 +326,6 @@ class SwapFactory {
         console.log('balance tokenIn', checkTokenInBalance)
         //console.log('balance tokenOut', checkTokenOutBalance)
 
-
-
         //manage sell/buy value
         let typedValueParsed = ethers.utils.parseUnits(value.toString(), tokenInDecimals)
         if(typeOfSwap === "sell"){
@@ -329,75 +335,35 @@ class SwapFactory {
         }
         let bnbValue = CurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
         //Create trade
-        let trade = null
-        if(tokenIn == this.WBNB){
-            let bnbAmount = CurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
-            console.log(bnbValue)
-            trade = new Trade(route, bnbAmount, TradeType.EXACT_INPUT)
-        }else{
-            trade = new Trade(route, new TokenAmount(tokenInInstance, typedValueParsed), TradeType.EXACT_INPUT)
-        }
-        const tradeOptions = await this.getTradeOptions(allowedSlippage, true)
-
-        //gas
+        const trade = new Trade(route, new TokenAmount(tokenInInstance, typedValueParsed), TradeType.EXACT_INPUT)
+        console.log('fee', feeOnTransfer)
+        const tradeOptions = await this.getTradeOptions(allowedSlippage, feeOnTransfer)
         gasPrice = ethers.utils.parseUnits(gasPrice.toString(), 'gwei')
-        //gasLimit = this.calculateGasMargin(gasPrice)
-
         //approval
         await this.approveIfNeeded(tokenInContractInstance, paidTokenInContractInstance, ethers.utils.parseUnits(value.toString()), 500000, gasPrice)
 
         //create hex swap
-        let swap = Router.swapCallParameters(trade, tradeOptions)
+        let etherIn = (tokenIn === this.WBNB ? true : false)
+        let etherOut =  (tokenOut === this.WBNB ? true : false)
+
+        let swap = Router.swapCallParameters(trade, tradeOptions, etherIn, etherOut)
         let transactionOptions = {gasPrice: gasPrice, gasLimit: gasLimit}
+        console.log(transactionOptions)
+
+        if(typeOfSwap !== "sell"){
+            transactionOptions.value = ethers.utils.parseUnits(value.toString(), 'ether')
+        }
         console.log(swap)
         //verify transaction
-        let estimateGas = await routerContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
-        console.log(estimateGas)
 
-        //let result = await swapFactory.callContractMethod(routerContractInstance, swap.methodName, swap.args, transactionOptions)
-        //let confirm = await result.wait()
+        let result = await this.callContractMethod(routerContractInstance, swap.methodName, swap.args, transactionOptions)
+        let confirm = await result.wait()
         console.log(confirm)
-
         return confirm
-    }
-
-
-
-    async pendingTransaction(socket){
-        const web3Socket = new Web3(socket);
-        let subscription = web3Socket.eth
-            .subscribe("pendingTransactions", function(error, result) {})
-            .on("data", async(transactionHash)  => {
-                const transaction = await web3Socket.eth.getTransaction(transactionHash)
-                if (transaction) {
-                    try{
-                        await this.parseTransactionData(transaction, transactionHash, subscription);
-                    }catch(err){
-
-                    }
-                }
-            })
-
 
     }
 
-    async parseTransactionData(transaction, tx, subscription){
-        const tokenToFind = ethers.utils.getAddress("0x20d0bb7f85f9dd557b52d533c930c0a5f01b727b")
-        const fnDecoder = new txDecoder.FunctionDecoder(PANCAKE);
-        const result = fnDecoder.decodeFn(transaction.input);
-        const signature = result['signature']
-        const signatureHash = result['sighash']
-        if(signature.includes("swap")){
-            const pathLength = result["path"].length
-            const tokenIn = result["path"][0]
-            const tokenOut = ethers.utils.getAddress(result["path"][pathLength - 1])
-            console.log(tx)
-            console.log(tokenOut, tokenToFind)
-            if(tokenOut == tokenToFind){ // je ne peux front run que si j'ai le token1
-                await this.prepareFrontRun(transaction, tx, signature, result, tokenIn, tokenOut, subscription)
-            }
-        }
-    }
+
 
     async swapFast(originalTransaction, victimAddress, newGasPrice, newGasLimit){
         let inputData = originalTransaction.input
@@ -435,104 +401,108 @@ class SwapFactory {
         return sendTransaction
     }
 
-    async prepareFrontRun(transaction, tx, signature, result, tokenIn, tokenOut, subscription){
-        console.log('preparing front run', transaction)
-        console.log('result', result)
-        try{
-                let amountIn = (transaction.hasOwnProperty("value") ? transaction.value : null)
-                if(tokenIn == this.WBNB){
-                    amountIn = await this.parseCurrency(amountIn.toString())
-                    amountIn = amountIn.toExact()
-                    amountIn = this.readableValue(amountIn, 18)
-                }else{
-                    const tokenInContractInstance =  await swapFactory.getFreeContractInstance(tokenIn, ERC20)
-                    const tokenInDecimals = await this.callContractMethod(tokenInContractInstance, "decimals")
-                    amountIn = await this.readableValue(amountIn, tokenInDecimals)
-                }
 
-                let hexAmountOutMin = ('amountOutMin' in result ? result['amountOutMin'] : result['amountOut'])
-                const tokenOutContractInstance = await swapFactory.getFreeContractInstance(tokenOut, ERC20)
 
-                const tokenOutDecimals = await this.callContractMethod(tokenOutContractInstance, "decimals")
-                let amountOutMin = hexAmountOutMin.toString()
-                let readableOut = this.readableValue(amountOutMin, tokenOutDecimals)
 
-                if(amountIn >= 0.02 && amountIn <= 0.03 ){
-                    let cancelSubscribe = await subscription.unsubscribe()
-                    console.log("ending search in mempool...")
-
-                    const gasPrice = Math.round(parseInt(this.readableValue(transaction.gasPrice, 9)))
-                    const gasLimit = (transaction.gas).toString()
-                    const confirmations = transaction.confirmations
-                    console.log(confirmations)
-                    console.log("[tx " + tx + " gas " + gasPrice + " limit " + gasLimit + " amountIn " + amountIn + " amountOutMin " + amountOutMin + " readableOut " + readableOut + " bnbPriceForOneToken" +" ]")
-                    const multiplier = 2
-                    //prepare upgraded Trade
-                    if((gasPrice * multiplier) <= 30){
-                        let frontGas = gasPrice * multiplier
-                        let frontLimit = gasLimit * 3
-                        frontLimit = Math.trunc(frontLimit)
-                        console.log(gasPrice * 2)
-                        console.log(gasLimit * 2)
-
-                        let fastSwap = await this.swapFast(transaction, result["to"], frontGas, frontLimit)
-                        let tradeTokenToBNB = await this.swap("sell", tokenOut, this.WBNB, 100, 20, 10, frontLimit)
-                    }else{
-                        console.log('too much gas bruh')
-                        process.exit()
-                    }
-
-                }
-        }catch(err){
+    async checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) {
+        try {
+            const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
+            return await this.callContractMethod(routerContractInstance, "getAmountsOut", options)
+        } catch (err) {
             console.log(err)
+            console.log("pas de liquidité")
+            return false
         }
-
     }
 
 
 
+    async listenPriceOfCoin(typeOfListen,tokenIn, tokenOut, tokenOutName, targetIncrease, value, sellSlippage, sellGas, gasLimit, feeOnTransfer){
+
+
+        //let balanceTokenIn = await contractTokenIn.balanceOf(addresses.recipient)
+        //console.log(tokenOut)
+        const routerContractInstance = await this.getPaidContractInstance(this.router, PANCAKE, this.signer)
+        const tokenOutContractInstance =  await this.getFreeContractInstance(tokenOut, ERC20)
+        const tokenInContractInstance =  await this.getFreeContractInstance(tokenIn, ERC20)
+        const tokenInDecimals = await this.callContractMethod(tokenInContractInstance, "decimals")
+        const tokenOutDecimals = await this.callContractMethod(tokenOutContractInstance, "decimals")
+
+        let balanceTokenIn = await this.callContractMethod(tokenInContractInstance, "balanceOf")
+        let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
+        let initialAmountIn = this.readableValue(amounts[0].toString(), tokenInDecimals)
+        let initialAmountOut = this.readableValue(amounts[1].toString(), tokenOutDecimals) //
+        console.log('initialAmountIn :',initialAmountIn)
+        console.log('initialAmountOut :',initialAmountOut)
+
+
+        if(amounts !== false){
+            let waitingProfit = await this.createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer)
+            if(waitingProfit){
+                return console.log("Interval terminé")
+            }
+        }
+    }
+
+    async createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer){
+        let intervalFinished = false
+        const allDone = this.waitUntil(intervalFinished === true)
+
+        let waitProfit = setInterval(async() =>{
+            let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
+
+            let actualAmountOut = this.readableValue(amounts[1].toString(), tokenOutDecimals)
+            let increasePourcentage = this.calculateIncrease(initialAmountOut,actualAmountOut)
+
+
+            console.log('----------------')
+            if(typeOfListen === "buy"){
+                console.log('\x1b[36m%s\x1b[0m', "decreasePourcentage : "+ increasePourcentage + "% " + tokenOut + " " + tokenOutName);
+                if(increasePourcentage <= targetIncrease && isFinite(increasePourcentage)){ // vu que c'est amountsOut, je vérifie combien de tokenOut je peux avoir pour 1 BNB, c'est négatif car du coup moins je peux avoir de tokenOut, plus il a pris de la valeur
+                    console.log("La valeur du token " + tokenOut + "a baissé de : " + increasePourcentage +"%,  envoi de l'ordre d'achat en cours" + " cible: " + actualAmountOut + " bnb")
+                    clearInterval(waitProfit)
+                    console.log('buy token: ',value)
+                    await this.swap("buy",tokenOut, tokenIn, value, sellSlippage, sellGas, gasLimit, feeOnTransfer)
+                    console.log("Acheté lors de la baisse")
+                    intervalFinished = true
+                }
+            }else{
+                console.log('\x1b[36m%s\x1b[0m', "increasePourcentage : "+ increasePourcentage + "% " + tokenOut + " " + tokenOutName);
+                if(increasePourcentage >= targetIncrease && isFinite(increasePourcentage)){ // vu que c'est amountsOut, je vérifie combien de tokenOut je peux avoir pour 1 BNB, c'est négatif car du coup moins je peux avoir de tokenOut, plus il a pris de la valeur
+                    console.log("La valeur du token " + tokenOut + "a augmenté de : " + increasePourcentage +"%,  envoi de l'ordre d'achat en cours" + " cible: " + actualAmountOut + " bnb")
+                    clearInterval(waitProfit)
+                    await this.swap("sell",tokenOut, tokenIn, value, sellSlippage, sellGas, gasLimit, feeOnTransfer)
+                    console.log("Vendu avec profit")
+                    intervalFinished = true
+                }
+
+            }
+            console.log('----------------')
+
+        }, 1000);
+
+        return allDone
+
+    }
+    calculateIncrease(originalAmount, newAmount){
+        console.log(originalAmount + '-' + newAmount)
+        let increase = originalAmount - newAmount   // 100 - 70 = 30
+        //console.log(newAmount , originalAmount)
+        increase = increase / originalAmount  //  30/ 70
+        increase = increase * 100
+        increase = Math.round(increase)
+        return increase
+    }
+
+    async waitUntil(condition) {
+        return await new Promise(resolve => {
+            const interval = setInterval(() => {
+                if (condition) {
+                    resolve('ok');
+                    clearInterval(interval);
+                };
+            }, 1000);
+        });
+    }
+
 }
-
-
-
-//let swapFactory = new SwapFactory("test", config.testNetAccount,  config.testNetKey)
-//let swapFactory = new SwapFactory("ganache", config.ganacheAccount,  config.ganacheKey)
-//let trade = await swapFactory.swap("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", "0x5e90253fbae4dab78aa351f4e6fed08a64ab5590", 1, 12)
-
-let swapFactory = new SwapFactory("prod", config.mainNetAccount,  config.mainNetKey) //dragmoon
-let swapLanistar = new SwapFactory("prod", config.lanistar.account,  config.lanistar.key) //lanistar
-let swapStark = new SwapFactory("prod", config.stark.account,  config.stark.key) //stark
-
-//swapFactory.pendingTransaction(mainNetSocket)
-
-//swapFactory.swapFast()
-
-
-let token1 = ethers.utils.getAddress("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c")
-let token2 = ethers.utils.getAddress("0x89a761d15ddcfe7293d010eaa388d385c135bebc") //dragmoon
-let tokenLanistar = ethers.utils.getAddress("0x55d398326f99059ff775485246999027b3197955") //lanistar
-let tokenStark = ethers.utils.getAddress("0x55d398326f99059ff775485246999027b3197955") //stark
-let buyValue = 0.001
-let sellValue = 100
-let buySlippage = 12
-let sellSlippage = 12
-let gasLimit = 700000
-let buyGas = 5
-let sellGas = 5
-
-
-
-//let tradeBNBToToken = await swapFactory.swap("buy",token1, token2, buyValue, buySlippage, 5, 200000)
-//let tradeTokenToBNB = await swapFactory.swap("sell", token2, token1, sellValue, sellSlippage, 5, 200000)
-
-
-const tradeBNBForLanistar = await swapLanistar.swap("buy",token1, tokenLanistar, buyValue, buySlippage, buyGas, gasLimit)
-const lanistarForBNB = await swapLanistar.swap("sell",tokenLanistar, token1, 100, sellSlippage, sellGas, gasLimit)
-const tradeBNBForStark = await swapStark.swap("buy",token1, tokenStark, buyValue, buySlippage, buyGas, gasLimit)
-const starkForBNB = await swapStark.swap("sell",tokenStark, token1, 100, sellSlippage, sellGas, gasLimit)
-
-
-
-//token acheté 1 allowed 0xe4ddd2daef89d7483917bcc2fd55f361585fd2d3
-//token 2 0xdf6bea2a2f47c7bcfc3cb7765bf9b2fa3214b7e9
-//wbnb 0xae13d989dac2f0debff460ac112a837c89baa7cd

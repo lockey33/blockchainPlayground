@@ -1,7 +1,7 @@
 import { TradeType } from './constants'
 import invariant from 'tiny-invariant'
 import { validateAndParseAddress } from './utils'
-import { CurrencyAmount, ETHER, Percent, Trade } from './entities'
+import { CurrencyAmount, Percent, Trade } from './entities'
 
 /**
  * Options for producing the arguments to send call to the router.
@@ -64,11 +64,12 @@ export abstract class Router {
    * Produces the on-chain method name to call and the hex encoded parameters to pass as arguments for a given trade.
    * @param trade to produce call parameters for
    * @param options options for the call parameters
+   * @param etherIn
+   * @param etherOut
    */
-  public static swapCallParameters(trade: Trade, options: TradeOptions): SwapParameters {
-
-    const etherIn = trade.inputAmount.currency === ETHER
-    const etherOut = trade.outputAmount.currency === ETHER
+  public static swapCallParameters(trade: Trade, options: TradeOptions, etherIn:boolean, etherOut:boolean): SwapParameters {
+    console.log(etherIn)
+    console.log('here')
     // the router does not support both ether in and out
     invariant(!(etherIn && etherOut), 'ETHER_IN_OUT')
     invariant(options.ttl > 0, 'TTL')
@@ -85,9 +86,8 @@ export abstract class Router {
     let value: string
     switch (trade.tradeType) {
       case TradeType.EXACT_INPUT:
-        console.log('EASSYYYYYY')
-        console.log(trade.inputAmount.currency, ETHER)
         if (etherIn) {
+          console.log('bim')
           methodName = useFeeOnTransfer ? 'swapExactETHForTokensSupportingFeeOnTransferTokens' : 'swapExactETHForTokens'
           // (uint amountOutMin, address[] calldata path, address to, uint deadline)
           args = [amountOut, path, to, deadline]

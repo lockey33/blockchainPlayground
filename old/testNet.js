@@ -1,9 +1,9 @@
 const ethers = require("ethers");
 const Web3 = require('web3');
-const pancakeAbi = require('./abi/pancake.json');
-const wbnbAbi = require('./abi/wbnb.json');
-const helperAbi = require('./abi/helper.json');
-const approveSpenderAbi = require('./abi/approveSpender.json');
+const pancakeAbi = require('../abi/pancake.json');
+const wbnbAbi = require('../abi/wbnb.json');
+const helperAbi = require('../abi/helper.json');
+const approveSpenderAbi = require('../abi/approveSpender.json');
 const testNet = "https://bsc-testnet.web3api.com/v1/YG5ZXZX9AX6TA9NZAEX71SR8FAAFYPSCVX";
 const publicTestNet = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 

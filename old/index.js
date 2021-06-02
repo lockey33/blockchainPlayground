@@ -1,9 +1,9 @@
 const ethers = require("ethers");
 const Web3 = require('web3');
-const pancakeAbi = require('./abi/pancake.json');
-const wbnbAbi = require('./abi/wbnb.json');
-const helperAbi = require('./abi/helper.json');
-const approveSpenderAbi = require('./abi/approveSpender.json');
+const pancakeAbi = require('../abi/pancake.json');
+const wbnbAbi = require('../abi/wbnb.json');
+const helperAbi = require('../abi/helper.json');
+const approveSpenderAbi = require('../abi/approveSpender.json');
 
 const mainNet = "https://bsc-mainnet.web3api.com/v1/YG5ZXZX9AX6TA9NZAEX71SR8FAAFYPSCVX";
 const mainNetBlockIo = "https://bsc.getblock.io/mainnet/?api_key=811a98b6-09f6-4fc8-a7f8-71112672ab97";
