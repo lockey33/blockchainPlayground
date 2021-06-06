@@ -4,5 +4,7 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/pancakeswap-sdk" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/pancakeswap-sdk-v2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/telegram-channel-scraper" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/telegram/telegram-channel-scraper" vcs="Git" />
   </component>
 </project>

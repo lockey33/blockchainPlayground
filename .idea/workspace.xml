@@ -2,94 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/old/helpers/check.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/trade.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/telegram/signIn.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/telegram/telegram.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abi/approveSpender.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abi/approveSpender.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abi/helper.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abi/helper.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abi/pancake.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abi/pancake.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abi/wbnb.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abi/wbnb.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/approveSpender.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/approveSpender.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/erc20.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/erc20.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/erc20.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/erc20.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/erc20_bytes32.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/erc20_bytes32.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/pancake.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/pancake.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/pancake.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/pancake.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/wbnb.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/wbnb.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/abis/weth.json" beforeDir="false" afterPath="$PROJECT_DIR$/factory/abis/weth.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/1.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/data/1.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abi/approveSpender.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abi/approveSpender.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abi/helper.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abi/helper.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abi/pancake.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abi/pancake.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abi/wbnb.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abi/wbnb.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abis/approveSpender.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abis/approveSpender.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abis/erc20.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abis/erc20.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abis/erc20_bytes32.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abis/erc20_bytes32.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abis/pancake.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abis/pancake.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abis/wbnb.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abis/wbnb.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/abis/weth.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/abis/weth.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/data/1.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/data/1.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/helpers/check.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/helpers/check.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/helpers/playground.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/helpers/playground.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/listenCoinHunt.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/listenCoinHunt.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/listenNewPairs.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/listenNewPairs.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/mongo.schemas/coinSchema.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/mongo.schemas/coinSchema.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/swap.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/swap.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/testNet.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/dist/testNet.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helpers/check.js" beforeDir="false" afterPath="$PROJECT_DIR$/gemFinder.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helpers/playground.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/helpers/playground.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/listenNewPairs.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/listenNewPairs.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/listenerFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gemFinder.js" beforeDir="false" afterPath="$PROJECT_DIR$/gemFinder.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/listenCoinHunt.js" beforeDir="false" afterPath="$PROJECT_DIR$/listenCoinHunt.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mongo.schemas/coinSchema.js" beforeDir="false" afterPath="$PROJECT_DIR$/mongo.schemas/coinSchema.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/.babelrc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/.gitattributes" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/.github/workflows/CI.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/.yarnrc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/package.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/abis/ERC20.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/constants.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/declarations.d.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/currency.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/fractions/currencyAmount.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/fractions/fraction.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/fractions/index.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/fractions/percent.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/fractions/price.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/fractions/tokenAmount.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/index.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/pair.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/route.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/token.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/entities/trade.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/errors.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/fetcher.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/index.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/router.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/src/utils.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/constants.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/data.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/entities.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/fraction.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/miscellaneous.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/pair.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/route.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/router.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/token.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/test/trade.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/tsconfig.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pancakeswap-sdk-v2/yarn.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/swap.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testNet.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/testNet.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transactionChecker.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/transactionChecker.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trade.js" beforeDir="false" afterPath="$PROJECT_DIR$/trade.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,6 +58,7 @@
       <recent name="$PROJECT_DIR$/contracts" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/telegram" />
       <recent name="$PROJECT_DIR$/old" />
       <recent name="$PROJECT_DIR$/factory" />
       <recent name="$PROJECT_DIR$/contracts" />
@@ -171,7 +96,9 @@
       <workItem from="1622099800182" duration="22000" />
       <workItem from="1622135753980" duration="12806000" />
       <workItem from="1622217739228" duration="75056000" />
-      <workItem from="1622618903564" duration="12981000" />
+      <workItem from="1622618903564" duration="22023000" />
+      <workItem from="1622708446472" duration="9625000" />
+      <workItem from="1622731614322" duration="33161000" />
     </task>
     <servers />
   </component>

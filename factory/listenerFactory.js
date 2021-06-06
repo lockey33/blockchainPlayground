@@ -1,6 +1,5 @@
 import Web3 from 'web3'
 import ethers from 'ethers'
-import ERC20 from '../abis/erc20.js'
 import config from '../config.js'
 const mainNet = 'https://bsc-dataseed.binance.org/'
 const mainNetSocket = 'wss://bsc-ws-node.nariox.org:443'
@@ -10,11 +9,13 @@ const quickSocket = 'wss://purple-weathered-moon.bsc.quiknode.pro/4aca6a71de7887
 
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
+const resolve = require('path').resolve
 const txDecoder = require('ethereum-tx-decoder');
 
 const Tx = require('ethereumjs-tx').Transaction
-import SwapFactory from "./factory/swapFactory.js";
-
+import SwapFactory from "./swapFactory.js";
+import ERC20 from './abis/erc20.js'
+import PANCAKE from './abis/pancake.js'
 
 export default class ListenerFactory {
 
@@ -22,11 +23,13 @@ export default class ListenerFactory {
         this.swapFactory = new SwapFactory("prod", config.dragmoon.mainNetAccount,  config.dragmoon.mainNetKey)
     }
 
-    async listenAllSwapTransactions(socket){
-        console.log(this.swapFactory.router)
+    getMarketCap(tokenAddress){
+
     }
 
+
     async pendingTransaction(socket){
+        console.log('here')
         const web3Socket = new Web3(socket);
         let subscription = web3Socket.eth
             .subscribe("pendingTransactions", function(error, result) {})
@@ -43,8 +46,21 @@ export default class ListenerFactory {
 
 
     }
-
     async parseTransactionData(transaction, tx, subscription){
+        const fnDecoder = new txDecoder.FunctionDecoder(PANCAKE);
+        const result = fnDecoder.decodeFn(transaction.input);
+        const signature = result['signature']
+        const signatureHash = result['sighash']
+        if(signature.includes("swap")){
+            const pathLength = result["path"].length
+            const tokenIn = result["path"][0]
+            const tokenOut = ethers.utils.getAddress(result["path"][pathLength - 1])
+            console.log(tx)
+            console.log(result)
+        }
+    }
+
+    async parseTransactionDataForToken(transaction, tx, subscription){
         const tokenToFind = ethers.utils.getAddress("0x20d0bb7f85f9dd557b52d533c930c0a5f01b727b")
         const fnDecoder = new txDecoder.FunctionDecoder(PANCAKE);
         const result = fnDecoder.decodeFn(transaction.input);
@@ -57,7 +73,7 @@ export default class ListenerFactory {
             console.log(tx)
             console.log(tokenOut, tokenToFind)
             if(tokenOut == tokenToFind){ // je ne peux front run que si j'ai le token1
-                await this.prepareFrontRun(transaction, tx, signature, result, tokenIn, tokenOut, subscription)
+                //await this.prepareFrontRun(transaction, tx, signature, result, tokenIn, tokenOut, subscription)
             }
         }
     }
@@ -118,5 +134,3 @@ export default class ListenerFactory {
 
 }
 
-const listener = new ListenerFactory()
-listener.listenAllSwapTransactions(mainNetSocket)

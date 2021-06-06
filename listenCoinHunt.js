@@ -1,14 +1,17 @@
-const axios = require('axios');
-const coinSchema = require('./mongo.schemas/coinSchema');
-const moment = require('moment');
-const mongoose = require("mongoose");
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const resolve = require('path').resolve
+import axios from 'axios';
+import coinSchema from './mongo.schemas/coinSchema.js';
+import moment from 'moment';
+import mongoose from "mongoose";
 mongoose.connect("mongodb://localhost:27017/coinhunt", {useNewUrlParser: true});
 const ethers = require("ethers");
 const Web3 = require('web3');
-const pancakeAbi = require('./abi/pancake.json');
-const wbnbAbi = require('./abi/wbnb.json');
-const helperAbi = require('./abi/helper.json');
-const approveSpenderAbi = require('./abi/approveSpender.json');
+const pancakeAbi = require('./factory/abi/pancake.json');
+const wbnbAbi = require('./factory/abi/wbnb.json');
+const helperAbi = require('./factory/abi/helper.json');
+const approveSpenderAbi = require('./factory/abi/approveSpender.json');
 
 const mainNet = "https://bsc-mainnet.web3api.com/v1/YG5ZXZX9AX6TA9NZAEX71SR8FAAFYPSCVX";
 const mainNetBlockIo = "https://bsc.getblock.io/mainnet/?api_key=811a98b6-09f6-4fc8-a7f8-71112672ab97";
@@ -222,7 +225,7 @@ async function getSomeCoins(){
 async function waitProfitableCoin(logNewCoins){
     let newCoinsInserted = await insertNewCoins()
     if(newCoinsInserted === false){
-        //console.log("nouveaux coins détecté")
+        console.log('new coins poto')
         let coins = await getLowMarketCapCoins(true, logNewCoins)
         //let coins = await getSomeCoins()
         //console.log(coins)

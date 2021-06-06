@@ -1,6 +1,6 @@
 
 // Import modules
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 // Set up Image schema
 
@@ -25,4 +25,4 @@ let coinSchema = Schema({
 });
 
 // Export Image model
-module.exports = mongoose.model('coin', coinSchema);
+export default coinSchema = mongoose.model('coin', coinSchema);
