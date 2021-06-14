@@ -23,7 +23,7 @@ let session = new StringSession(stringSession); // fill this later with the valu
 
 const client = new TelegramClient(session, apiId, apiHash,{});
 await client.connect()
-const idChannel = "VeggieMoon"
+const idChannel = "BabyTigerBSC"
 
 async function getMessagesFromChannel(client) {
     const myChannels = await client.invoke(new Api.contacts.ResolveUsername({
@@ -45,28 +45,29 @@ async function getMessagesFromChannel(client) {
 
     const waitContract = await getHistoryByInterval(resolvedPeer, LIMIT_COUNT)
     console.log(waitContract)
-    const swapDragmoon = new SwapFactory("prod", config.dragmoon.mainNetAccount, config.dragmoon.mainNetKey) //dragmoon
+    const swapDragmoon = new SwapFactory("prod", config.dragmoon.mainNetAccount,  config.dragmoon.mainNetKey) //dragmoon
+    //const swapLanistar = new SwapFactory("prod", config.lanistar.account,  config.lanistar.key) //lanistar
+    //const swapStark = new SwapFactory("prod", config.stark.account,  config.stark.key) //stark
 
     let token1 = ethers.utils.getAddress("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c")
     let token2 = ethers.utils.getAddress(waitContract)
 
     let gasLimit = 1000000
 
-    let buyValue = 0.1// BUY VALUE
+    let buyValue = 0.02// BUY VALUE
     let buySlippage = 80 // BUY SLIPPAGE
-    let buyGas = 25 // BUY GAS
+    let buyGas = 20 // BUY GAS
 
     let sellValue = 100 //SELL VALUE
     let sellSlippage = 50 // SELL SLIPPAGE
     let sellGas = 25
 
-    let targetIncrease = 100
+    let targetIncrease = 200
 
-
-    await swapDragmoon.buyFast(token1, token2, buyValue, buySlippage, buyGas, gasLimit, false)
-    const increased = await swapDragmoon.listenPriceOfCoin("sell", token1, token2, "new token", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true)
+    await swapDragmoon.snipeLaunch(token2, buyValue, buySlippage, buyGas, gasLimit)
+    const increased = swapDragmoon.listenPriceOfCoin("sell", token1, token2, "new token", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true, -20)
     await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
-    console.log('vendu avec 100% de profit frelon, paye toi un grec')
+    console.log('vendu avec 200% de profit frelon, paye toi un grec')
     process.exit()
     //console.log('allMessages:', historyResult);
 

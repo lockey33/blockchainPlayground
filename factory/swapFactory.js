@@ -460,9 +460,26 @@ export default class SwapFactory {
         }
     }
 
+    async snipeLaunch(tokenOut, buyAmount, slippage, gasPrice, gasLimit) {
+        const routerContractInstance = await this.getPaidContractInstance(this.router, PANCAKE, this.signer)
+        const tokenOutContractInstance = await this.getFreeContractInstance(tokenOut, ERC20)
+        const tokenOutDecimals = await this.callContractMethod(tokenOutContractInstance, "decimals")
+        const tokenIn = this.WBNB
+        let liquidityAvailable = false
+
+        while(liquidityAvailable === false) {
+            liquidityAvailable = await this.checkLiquidity(routerContractInstance, 0, tokenIn, tokenOut)
+        }
+        console.log('on achete poto')
+
+        await this.buyFast(tokenIn, tokenOut, buyAmount, slippage, gasPrice, gasLimit, true)
+
+        return true
+    }
 
 
-    async listenPriceOfCoin(typeOfListen,tokenIn, tokenOut, tokenOutName, targetIncrease, value, sellSlippage, sellGas, gasLimit, feeOnTransfer){
+
+    async listenPriceOfCoin(typeOfListen,tokenIn, tokenOut, tokenOutName, targetIncrease, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut = false){
 
 
         //let balanceTokenIn = await contractTokenIn.balanceOf(addresses.recipient)
@@ -482,7 +499,7 @@ export default class SwapFactory {
 
 
         if(amounts !== false){
-            const intervalAchieved = await this.createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer)
+            const intervalAchieved = await this.createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut)
             console.log("interval fini", intervalAchieved)
             if(intervalAchieved === true){
                 return true
@@ -491,7 +508,7 @@ export default class SwapFactory {
         }
     }
 
-    async createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer){
+    async createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut){
         return await new Promise((resolve) => {
             const waitProfit = setInterval(async() => {
                 try{
@@ -519,6 +536,11 @@ export default class SwapFactory {
                             clearInterval(waitProfit)
                             //await this.swap("sell",tokenOut, tokenIn, value, sellSlippage, sellGas, gasLimit, feeOnTransfer)
                             console.log("Vendu avec profit")
+                            resolve(true)
+                        }
+                        if(goOut !== false && pourcentageFluctuation <= goOut){
+                            console.log("le token mord la poussière, on se barre")
+                            clearInterval(waitProfit)
                             resolve(true)
                         }
 

@@ -21,16 +21,18 @@ export default class ListenerFactory {
 
     constructor() {
         this.swapFactory = new SwapFactory("prod", config.dragmoon.mainNetAccount,  config.dragmoon.mainNetKey)
-    }
-
-    getMarketCap(tokenAddress){
-
+        this.socket = mainNetSocket
     }
 
 
-    async pendingTransaction(socket){
-        console.log('here')
-        const web3Socket = new Web3(socket);
+    async getSomeTokens(){
+        this.pendingTransaction() // pas d'await vu qu'on va avoir plusieurs tokens
+    }
+
+
+    async pendingTransaction(){
+        console.log('start listening of tx ...')
+        const web3Socket = new Web3(this.socket);
         let subscription = web3Socket.eth
             .subscribe("pendingTransactions", function(error, result) {})
             .on("data", async(transactionHash)  => {
@@ -55,8 +57,51 @@ export default class ListenerFactory {
             const pathLength = result["path"].length
             const tokenIn = result["path"][0]
             const tokenOut = ethers.utils.getAddress(result["path"][pathLength - 1])
-            console.log(tx)
-            console.log(result)
+            //console.log(tx)
+            //console.log(result)
+            this.getTokenIncrease(tokenOut) // pas d'await pour ne pas bloquer les autres tokens
+        }
+    }
+
+    async getTokenIncrease(tokenOut, targetIncrease = 50){
+        let tokensCount = 0
+        if(tokenOut !== this.swapFactory.WBNB && tokensCount <= 10){
+            const balanceTokenIn = ethers.utils.parseUnits("1", "ether")
+            const routerContractInstance = await this.swapFactory.getPaidContractInstance(this.swapFactory.router, PANCAKE, this.swapFactory.signer)
+            const tokenOutContractInstance =  await this.swapFactory.getFreeContractInstance(tokenOut, ERC20)
+            const tokenOutDecimals = await this.swapFactory.callContractMethod(tokenOutContractInstance, "decimals")
+            console.log(tokenOut)
+            let amounts = null
+            try{
+                amounts = await this.swapFactory.checkLiquidity(routerContractInstance, balanceTokenIn, this.swapFactory.WBNB, tokenOut) // pour 1 bnb, combien
+                let initialAmountIn = this.swapFactory.readableValue(amounts[0].toString(), 18)
+                let initialAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals) //
+                const waitProfit = setInterval(async() => {
+                    tokensCount++
+                    let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, this.swapFactory.WBNB, tokenOut)
+                    let actualAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals)
+                    let pourcentageFluctuation = this.swapFactory.calculateIncrease(initialAmountOut, actualAmountOut)
+                    console.log('\x1b[36m%s\x1b[0m', "decreasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut + " " + tokenOut);
+                    console.log(pourcentageFluctuation, targetIncrease)
+                }, 10000)
+            }catch(err){
+                console.log(err)
+            }
+        }
+
+    }
+
+    async checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) {
+        try {
+            if(balanceTokenIn == 0){
+                balanceTokenIn = ethers.utils.parseUnits("1", "ether")
+            }
+            const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
+            return await this.callContractMethod(routerContractInstance, "getAmountsOut", options)
+        } catch (err) {
+            console.log(err)
+            console.log("pas de liquidité")
+            return false
         }
     }
 
@@ -131,6 +176,7 @@ export default class ListenerFactory {
         }
 
     }
+
 
 }
 
