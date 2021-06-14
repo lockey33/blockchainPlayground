@@ -97,7 +97,7 @@ export default class ListenerFactory {
                 balanceTokenIn = ethers.utils.parseUnits("1", "ether")
             }
             const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
-            return await this.callContractMethod(routerContractInstance, "getAmountsOut", options)
+            return await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
         } catch (err) {
             console.log(err)
             console.log("pas de liquidité")
