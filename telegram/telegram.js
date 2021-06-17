@@ -23,7 +23,7 @@ let session = new StringSession(stringSession); // fill this later with the valu
 
 const client = new TelegramClient(session, apiId, apiHash,{});
 await client.connect()
-const idChannel = "BabyTigerBSC"
+const idChannel = "PumpCakeOfficial"
 
 async function getMessagesFromChannel(client) {
     const myChannels = await client.invoke(new Api.contacts.ResolveUsername({
@@ -54,18 +54,19 @@ async function getMessagesFromChannel(client) {
 
     let gasLimit = 1000000
 
-    let buyValue = 0.02// BUY VALUE
+    let buyValue = 0.01// BUY VALUE
     let buySlippage = 80 // BUY SLIPPAGE
-    let buyGas = 20 // BUY GAS
+    let buyGas = 100 // BUY GAS
 
     let sellValue = 100 //SELL VALUE
     let sellSlippage = 50 // SELL SLIPPAGE
-    let sellGas = 25
+    let sellGas = 80
 
     let targetIncrease = 200
 
-    await swapDragmoon.snipeLaunch(token2, buyValue, buySlippage, buyGas, gasLimit)
-    const increased = swapDragmoon.listenPriceOfCoin("sell", token1, token2, "new token", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true, -20)
+    //await swapDragmoon.snipeLaunch(token2, buyValue, buySlippage, buyGas, gasLimit)
+    await swapDragmoon.buyFast(token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
+    //const increased = swapDragmoon.listenPriceOfCoin("sell", token1, token2, "new token", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true, -20)
     await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
     console.log('vendu avec 200% de profit frelon, paye toi un grec')
     process.exit()

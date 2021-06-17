@@ -5,5 +5,6 @@ import ListenerFactory from "./factory/listenerFactory.js";
 const mainNetSocket = 'wss://bsc-ws-node.nariox.org:443'
 
 const listener = new ListenerFactory()
-listener.pendingTransaction(mainNetSocket)
+//listener.pendingTransaction(mainNetSocket)
 
+listener.listenNewPairs()

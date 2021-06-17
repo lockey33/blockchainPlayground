@@ -2,7 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontrun.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/listenerFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gemFinder.js" beforeDir="false" afterPath="$PROJECT_DIR$/gemFinder.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/listenNewPairs.js" beforeDir="false" afterPath="$PROJECT_DIR$/old/listenNewPairs.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/telegram/telegram.js" beforeDir="false" afterPath="$PROJECT_DIR$/telegram/telegram.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trade.js" beforeDir="false" afterPath="$PROJECT_DIR$/trade.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,6 +98,10 @@
       <workItem from="1622731614322" duration="33161000" />
       <workItem from="1622978818450" duration="4892000" />
       <workItem from="1623673047642" duration="6934000" />
+      <workItem from="1623774939296" duration="9151000" />
+      <workItem from="1623838674766" duration="6875000" />
+      <workItem from="1623859418472" duration="2909000" />
+      <workItem from="1623929833643" duration="1768000" />
     </task>
     <servers />
   </component>

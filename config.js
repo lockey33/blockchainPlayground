@@ -7,8 +7,8 @@ export default
   "testNetKey": "eceddec0267cb33191437477bad3e253d2f0a0ef8fe2a57ca27b8dc5a5029c75",
 
   "dragmoon":{
-    "mainNetAccount": "0x2e5e52d79A02A496A63A919f4Dda54de0F3c75B9",
-    "mainNetKey": "87cebb763bf358ce7cd3181fd4c9be917c35ffd01e4c6a5ea099c267539bd87f",
+    "mainNetAccount": "0x3Ce64e0e548b85E86e6786613FF97Dbb2C23481C",
+    "mainNetKey": "6efa19b7534095c84baaf3b017810c37fdd99cb44c4f07c5bf4ef2aa4c474ab5",
   },
   "stark" :{
     "key" : "3b1f27ab9adf7c9e88cacdc86fbd017e46305811bec60854b81aaebaf8199ff5",
@@ -17,6 +17,10 @@ export default
   "lanistar":{
     "key": "ac5a8cdb025e04f7e9032931194c08ef83a7ef49bc73993fd7a6906595b3de4a",
     "account": "0x8DD0308B2Fcb6200329A5bD4b6220c94A21c13a4"
+  },
+  "compte4":{
+    "key": "375902566b2862e57bb1d87b7fc23eebea016c63d4ad6fa1625b099106e2ca0d",
+    "account": "0xb95741bEf7c32EaeB26B8700FA413aC8e944180c"
   }
 }
 

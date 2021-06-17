@@ -1,9 +1,8 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const resolve = require('path').resolve
 const ethers = require("ethers");
 const Web3 = require('web3');
-const pancakeAbi = require('../abi/pancake.json');
-const wbnbAbi = require('../abi/wbnb.json');
-const helperAbi = require('../abi/helper.json');
-const approveSpenderAbi = require('../abi/approveSpender.json');
 const addresses = {
     WBNB: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
     factory: '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73',

@@ -328,7 +328,7 @@ export default class SwapFactory {
         const transactionOptions = {gasPrice: gasPrice, gasLimit: gasLimit}
         transactionOptions.value = ethers.utils.parseUnits(value.toString(), 'ether')
         console.log(swap)
-        this.approveIfNeeded(tokenOutContractInstance, ethers.utils.parseUnits(this.approveMaxValue), 1000000, gasPrice)
+        //this.approveIfNeeded(tokenOutContractInstance, ethers.utils.parseUnits(this.approveMaxValue), 1000000, gasPrice)
         const result = await this.callContractMethod(routerContractInstance, swap.methodName, swap.args, transactionOptions)
         const confirm = await result.wait()
         console.log('acheté')
