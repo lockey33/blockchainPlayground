@@ -8,10 +8,6 @@ const require = createRequire(import.meta.url);
 
 class dbFactory {
 
-    constructor(){
-        this.tokenSchema = tokenSchema
-    }
-
     async getAllTokens(){
         let allTokens = await tokenSchema.find()
         return allTokens

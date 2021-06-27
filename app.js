@@ -19,7 +19,6 @@ const io = require('socket.io')(server, {
 
 import dbFactory from './factory/dbFactory.js'
 import SwapFactory from "./factory/swapFactory.js";
-import ListenerFactory from "./factory/listenerFactory.js";
 import config from "./config.js";
 
 
@@ -56,16 +55,18 @@ io.on('connection', (socket) => {
         console.log('start listen : ', data.tokenOut)
         const tokenIn = swapFactory.WBNB
         const tokenOut = data.tokenOut
-        const interval = await ListenerFactory.listenPrice(tokenIn, tokenOut, socket)
+        const interval = await swapFactory.listenPrice(tokenIn, tokenOut, socket)
         const tokenObject = {contract: tokenOut, interval: interval}
         tokens.push(tokenObject)
     })
 
     socket.on('deleteAllIntervals', async (allTokensFromFront) => {
-        console.log('STOP')
+        console.log('STOP', allTokensFromFront)
+
         tokens.map((token) => {
             Object.entries(allTokensFromFront).map(([contract, tokenFront]) => {
                 if(token.contract === tokenFront.contract){
+                    console.log('here')
                     clearInterval(token.interval)
                 }
             })

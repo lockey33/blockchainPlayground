@@ -8,7 +8,6 @@ let tokenSchema = Schema({
     id: String,
     contract: String,
     marketCap: String,
-    fluctuation: Array,
     insertedAtDate: String
 });
 

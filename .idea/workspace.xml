@@ -2,63 +2,22 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/factory/abis/addLiquidity.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factory/accountFactory.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factory/contractFactory.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factory/dbFactory.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factory/globalFactory.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factory/helperFactory.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/getActiveTokens.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/launcher.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mongo.schemas/tokenSchema.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/refacto.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sniper.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/global.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/projectMode/ganache/config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/projectMode/prod/accounts.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/projectMode/prod/config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/projectMode/testnet/config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/1.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/accountFactory.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/contractFactory.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/dbFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/dbFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/globalFactory.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/helperFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/helperFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/listenerFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontrun.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontrun.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/data/1.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abi/approveSpender.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abi/helper.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abi/pancake.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abi/wbnb.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abis/approveSpender.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abis/erc20.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abis/erc20_bytes32.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abis/pancake.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abis/wbnb.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/abis/weth.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/app.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/data/1.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/helpers/check.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/helpers/playground.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/index.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/listenCoinHunt.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/listenNewPairs.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/mongo.schemas/coinSchema.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/package-lock.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/swap.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/dist/testNet.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/helpers/check.js" beforeDir="false" afterPath="$PROJECT_DIR$/addLiquidity.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/helpers/playground.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/index.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/listenNewPairs.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/testNet.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/transactionChecker.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/telegram/telegram.js" beforeDir="false" afterPath="$PROJECT_DIR$/telegram/telegram.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/trade.js" beforeDir="false" afterPath="$PROJECT_DIR$/trade.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mongo.schemas/tokenSchema.js" beforeDir="false" afterPath="$PROJECT_DIR$/mongo.schemas/tokenSchema.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/refacto.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/global.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/projectMode/ganache/config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/accounts.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/projectMode/testnet/config.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -155,7 +114,9 @@
       <workItem from="1624191884235" duration="38053000" />
       <workItem from="1624557298638" duration="593000" />
       <workItem from="1624563303518" duration="8359000" />
-      <workItem from="1624802885072" duration="9489000" />
+      <workItem from="1624802885072" duration="10077000" />
+      <workItem from="1624814108336" duration="149000" />
+      <workItem from="1624827078039" duration="106000" />
     </task>
     <servers />
   </component>
