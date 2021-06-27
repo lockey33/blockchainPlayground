@@ -8,7 +8,8 @@ import ethers from "ethers";
 
 
 
-const swapDragmoon = new SwapFactory("prod", config.dragmoon.mainNetAccount,  config.dragmoon.mainNetKey) //dragmoon
+const swapGanache = new SwapFactory("ganache", config.ganacheAccount,  config.ganacheKey) //ganache
+const swapDragmoon = new SwapFactory("prod", config.dragmoon.mainNetAccount,  config.dragmoon.mainNetKey) //ganache
 const swapLanistar = new SwapFactory("prod", config.lanistar.account,  config.lanistar.key) //lanistar
 const swapStark = new SwapFactory("prod", config.stark.account,  config.stark.key) //stark
 const swap4 = new SwapFactory("prod", config.compte4.account,  config.compte4.key) //stark
@@ -16,28 +17,33 @@ const swap4 = new SwapFactory("prod", config.compte4.account,  config.compte4.ke
 
 //swapFactory.swapFast()
 
-let targetIncrease = 50
+let targetIncrease = 90
 let targetDecrease = -40
 
 
 
 let gasLimit = 1000000
 
-let buyValue = 0.05// BUY VALUE
+let buyValue = 0.001// BUY VALUE
 let buySlippage = 12 // BUY SLIPPAGE
 let buyGas = 5 // BUY GAS
 
 let sellValue = 100 //SELL VALUE
-let sellSlippage = 25 // SELL SLIPPAGE
+let sellSlippage = 30 // SELL SLIPPAGE
 let sellGas = 10
 // SELL GAS
 
+
 let token1 = ethers.utils.getAddress("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c")
+let token2 = ethers.utils.getAddress("0x192e9321b6244d204d4301afa507eb29ca84d9ef")
+let token2Name = "EVERRISE"
+let goOut = -43
 
-let HUFFLEPUFF = ethers.utils.getAddress("0xb6431fd4cf3a3ae41d7c201affdf4339c472fe74")
-let SLYTHERIN = ethers.utils.getAddress("0x3015a7084608579571d9d69750aeb5ef9affd124")
+//await swapDragmoon.swap("buy",token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
+//await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
 //await swapDragmoon.snipeLaunch("0x33Cc9d0BA5456D82c33A0DAA65533a4a43BdfD73", 0.03, 50, 15, 500000)
-
+//const increased = await swapDragmoon.listenPriceOfCoin("sell", token1, token2, token2Name, targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true)
+//await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
 
 /*// ================= Token 1 BUY ===================//
 swapDragmoon.buyFast(token1, HUFFLEPUFF, buyValue, buySlippage, buyGas, gasLimit, true)
@@ -75,13 +81,8 @@ await swap4.swap("sell",HUFFLEPUFF, token1, sellValue, sellSlippage, sellGas, ga
 
 
 
-let token2 = ethers.utils.getAddress("0x226664c496ca0165a4bf86d7e274569301af1909")
-let token2Name = "Wheels"
-let goOut = -43
-
-await swapDragmoon.swap("buy",token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
-const increased = await swapDragmoon.listenPriceOfCoin("sell", token1, token2, token2Name, targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true, goOut)
-await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
+//const increased = await swapDragmoon.listenPriceOfCoin("sell", token1, token2, token2Name, 100, sellValue, sellSlippage, sellGas, gasLimit, true)
+//await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, 5, gasLimit, true)
 
 
 //await swapDragmoon.swap("buy",token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
