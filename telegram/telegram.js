@@ -54,20 +54,25 @@ async function getMessagesFromChannel(client) {
 
     let gasLimit = 1000000
 
-    let buyValue = 0.01// BUY VALUE
-    let buySlippage = 80 // BUY SLIPPAGE
+    let buyValue = 0.05// BUY VALUE
+    let buySlippage = 150 // BUY SLIPPAGE
     let buyGas = 100 // BUY GAS
 
     let sellValue = 100 //SELL VALUE
-    let sellSlippage = 50 // SELL SLIPPAGE
-    let sellGas = 80
+    let sellSlippage = 80 // SELL SLIPPAGE
+    let sellGas = 40
 
     let targetIncrease = 200
 
     //await swapDragmoon.snipeLaunch(token2, buyValue, buySlippage, buyGas, gasLimit)
-    await swapDragmoon.buyFast(token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
-    //const increased = swapDragmoon.listenPriceOfCoin("sell", token1, token2, "new token", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true, -20)
-    await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
+    try{
+        await swapDragmoon.buyFast(token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
+        //const increased = swapDragmoon.listenPriceOfCoin("sell", token1, token2, "new token", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true, -20)
+        await swapDragmoon.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
+    }catch(err){
+        console.log(err)
+    }
+
     console.log('vendu avec 200% de profit frelon, paye toi un grec')
     process.exit()
     //console.log('allMessages:', historyResult);

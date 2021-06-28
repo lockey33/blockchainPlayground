@@ -1,14 +1,10 @@
 import ListenerFactory from "./factory/listenerFactory.js";
-
+import tokenSchema from './mongo.schemas/tokenSchema.js';
 const listener = new ListenerFactory()
 
 const options = {
-    buyAmount: 0.05,
-    multiplier: 8,
-    frontRun: true,
-    tradeForReal: false,
-    wantedSlippage: -40,
-    tokenToFind: false,
+    saveInBdd: true,
+    wantedSlippage: -30,
     amountBnbFrom: 0.05,
     amountBnbTo: 10
 

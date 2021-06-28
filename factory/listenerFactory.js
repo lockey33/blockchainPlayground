@@ -6,12 +6,18 @@ const mainNetSocket = 'wss://bsc-ws-node.nariox.org:443'
 
 const quickHttp = 'https://purple-weathered-moon.bsc.quiknode.pro/4aca6a71de78877d5bdfeeaf9d5e14ef2da63250/'
 const quickSocket = 'wss://purple-weathered-moon.bsc.quiknode.pro/4aca6a71de78877d5bdfeeaf9d5e14ef2da63250/'
+import axios from 'axios';
+import tokenSchema from '../mongo.schemas/tokenSchema.js';
+import dbFactory from "./dbFactory.js";
+import mongoose from "mongoose";
+mongoose.connect("mongodb://localhost:27017/frontMoney", {useNewUrlParser: true});
 import moment from 'moment'
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const resolve = require('path').resolve
 const txDecoder = require('ethereum-tx-decoder');
-
+const ganacheFork = 'http://127.0.0.1:7545'
+const ganacheForkSocket = 'ws://127.0.0.1:8545'
 const Tx = require('ethereumjs-tx').Transaction
 import SwapFactory from "./swapFactory.js";
 import ERC20 from './abis/erc20.js'
@@ -23,6 +29,60 @@ export default class ListenerFactory {
         this.swapFactory = new SwapFactory("prod", config.dragmoon.mainNetAccount, config.dragmoon.mainNetKey)
         this.socket = mainNetSocket
         this.tokens = []
+    }
+
+    async listenPrice(tokenIn, tokenOut, socket){
+
+        const routerContractInstance = await this.swapFactory.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
+        const tokenInContractInstance =  await this.swapFactory.getFreeContractInstance(tokenIn, ERC20)
+        const tokenOutContractInstance =  await this.swapFactory.getFreeContractInstance(tokenOut, ERC20)
+        const tokenInDecimals = await this.swapFactory.callContractMethod(tokenInContractInstance, "decimals")
+        const tokenOutDecimals = await this.swapFactory.callContractMethod(tokenOutContractInstance, "decimals")
+
+        let balanceTokenIn = await this.swapFactory.callContractMethod(tokenInContractInstance, "balanceOf")
+        console.log(this.swapFactory.readableValue(balanceTokenIn.toString(), tokenInDecimals))
+        let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
+        let initialAmountIn = this.swapFactory.readableValue(amounts[0].toString(), tokenInDecimals)
+        let initialAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals) //
+        console.log('initialAmountIn :',initialAmountIn)
+        console.log('initialAmountOut :',initialAmountOut)
+
+
+        if(amounts !== false){
+            const interval = await this.priceInterval(balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut,tokenOutDecimals, routerContractInstance, socket)
+            return interval
+        }
+    }
+
+    async priceInterval(balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutDecimals, routerContractInstance, socket){
+        return await new Promise((resolve) => {
+            const waitProfit = setInterval(async() => {
+                try{
+                    let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
+                    let actualAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals)
+                    let pourcentageFluctuation = this.swapFactory.calculateIncrease(initialAmountOut,actualAmountOut)
+
+                    console.log('----------------')
+                    console.log('\x1b[36m%s\x1b[0m', "increasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut);
+                    let actualDateAndHour = moment().format("DD/MM/YYYY HH:mm:ss")
+                    //socket.emit("listenToken", {contract: tokenOut, fluctuation: pourcentageFluctuation, date: actualDateAndHour})
+                    try{
+                        await dbFactory.tokenSchema.findByIdAndUpdate({"contract": tokenOut}, {fluctuation: {actualDateAndHour: pourcentageFluctuation}})
+                    }catch(err){
+                        console.log(err)
+                        throw new Error(err)
+                    }
+                    console.log('----------------')
+                }catch(err){
+                    console.log("error within interval")
+                    console.log(err)
+                    resolve(err)
+                }
+            }, 10000);
+
+            resolve(waitProfit)
+        });
+
     }
 
     async listenNewPairs(){
@@ -67,9 +127,7 @@ export default class ListenerFactory {
         })
 
     }
-    /* @arr array you want to listen to
-       @callback function that will be called on any change inside array
-     */
+
     listenChangesinArray(arr,callback){
         // Add more methods here if you want to listen to them
         ['pop','push','reverse','shift','unshift','splice','sort'].forEach((m)=>{
@@ -81,8 +139,9 @@ export default class ListenerFactory {
         });
     }
 
-    async pendingTransaction(){
-        console.log('start listening of tx ...')
+
+    async listenToPendingTransactions(searchOptions){
+        console.log('starting front run ...')
         const web3Socket = new Web3(this.socket);
         let subscription = web3Socket.eth
             .subscribe("pendingTransactions", function(error, result) {})
@@ -90,16 +149,116 @@ export default class ListenerFactory {
                 const transaction = await web3Socket.eth.getTransaction(transactionHash)
                 if (transaction) {
                     try{
-                        await this.parseTransactionDataForToken(transaction, transactionHash, subscription);
+                        await this.parseTransactionData(transaction, transactionHash, subscription, searchOptions);
                     }catch(err){
 
                     }
                 }
             })
 
-
     }
-    async parseTransactionData(transaction, tx, subscription){
+
+    async getInfosFromTx(transaction, tx, signature, result, tokenIn, tokenOut, subscription, searchOptions){
+        try{
+            const routerContractInstance = await this.swapFactory.getPaidContractInstance(this.swapFactory.router, PANCAKE, this.swapFactory.signer)
+            let amountIn = (transaction.hasOwnProperty("value") ? transaction.value : null)
+            if(tokenIn == this.WBNB){
+                amountIn = await this.swapFactory.parseCurrency(amountIn.toString())
+                amountIn = amountIn.toExact()
+                amountIn = this.swapFactory.readableValue(amountIn, 18)
+            }else{
+                const tokenInContractInstance =  await this.swapFactory.getFreeContractInstance(tokenIn, ERC20)
+                const tokenInDecimals = await this.swapFactory.callContractMethod(tokenInContractInstance, "decimals")
+                amountIn = await this.swapFactory.readableValue(amountIn, tokenInDecimals)
+            }
+
+            let hexAmountOutMin = ('amountOutMin' in result ? result['amountOutMin'] : result['amountOut'])
+            const tokenOutContractInstance = await this.swapFactory.getFreeContractInstance(tokenOut, ERC20)
+
+            const tokenOutDecimals = await this.swapFactory.callContractMethod(tokenOutContractInstance, "decimals")
+            let amountOutMin = hexAmountOutMin.toString()
+            let readableOut = this.swapFactory.readableValue(amountOutMin, tokenOutDecimals)
+            console.log('one buy with amount: ', amountIn, tx)
+            if(amountIn >= searchOptions.amountBnbFrom && amountIn <= searchOptions.amountBnbTo ){
+
+                let balanceTokenIn = ethers.utils.parseUnits(amountIn, "ether")
+                const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut}
+                try{
+                    let marketAmounts =  await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
+                    let marketAmountIn = this.swapFactory.readableValue(marketAmounts[0].toString(), 18)
+                    let marketAmountOut = this.swapFactory.readableValue(marketAmounts[1].toString(), tokenOutDecimals) //
+                    console.log('marketAmountIn :',marketAmountIn)
+                    console.log('marketAmountOut :',marketAmountOut)
+
+                    let marketCap = null
+                    if(searchOptions.frontRun !== true){
+                        marketCap = await this.calculateMarketCap(tokenOut,tokenOutContractInstance, tokenOutDecimals, routerContractInstance)
+                        console.log('marketCap', marketCap)
+
+                    }
+                    const gasPrice = Math.round(parseInt(this.swapFactory.readableValue(transaction.gasPrice, 9)))
+                    const gasLimit = (transaction.gas).toString()
+                    const slippage = this.swapFactory.calculateIncrease(readableOut, marketAmountOut)
+
+                    const responseObject = {
+                        slippage: slippage,
+                        gasLimit: gasLimit,
+                        gasPrice: gasPrice,
+                        transaction: transaction,
+                        result: result,
+                        tokenIn: tokenIn,
+                        tokenOut: tokenOut,
+                        subscription: subscription,
+                        marketAmountOut: marketAmountOut,
+                        marketCap: marketCap
+                    }
+                    console.log("[tx " + tx + " gas " + gasPrice + " limit " + gasLimit + " amountIn " + amountIn + " amountOutMin " + amountOutMin + " readableOut " + readableOut + " slippage " + slippage + " % " + tokenOut +"  ]")
+
+                    return responseObject
+
+                }catch(err){
+
+                }
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+    async calculateMarketCap(token, tokenContractInstance, tokenDecimals, routerContractInstance){
+        const totalSupply = await this.swapFactory.callContractMethod(tokenContractInstance, "totalSupply")
+        console.log("totalSupply", totalSupply)
+        let balanceTokenIn = ethers.utils.parseUnits("1", "ether")
+        const options = {balanceTokenIn: balanceTokenIn, tokenIn: "0xe9e7cea3dedca5984780bafc599bd69add087d56", tokenOut: token}
+        let marketAmounts =  await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
+        let marketAmountIn = this.swapFactory.readableValue(marketAmounts[0].toString(), 18)
+        let marketAmountOut = this.swapFactory.readableValue(marketAmounts[1].toString(), tokenDecimals)
+        let marketCap = totalSupply * marketAmountOut
+        return marketCap
+    }
+
+    async doActions(txData, params, transaction, tokenOut, result, subscription){
+
+        if(params.tokenToFind !== false && tokenOut == params.tokenToFind){
+            if(params.frontRun === true){
+                //prepare upgraded Trade
+                if(params.tokenToFind !== false && tokenOut == params.tokenToFind){
+                    await this.frontRunNow(txData, params, transaction, tokenOut, result, subscription)
+                }else{
+                    await this.frontRunNow(txData, params, transaction, tokenOut, result, subscription)
+                }
+            }
+        }else{
+            if(params.saveInBdd === true){
+                await this.saveInBdd(txData, params, transaction, tokenOut, result, subscription)
+            }
+        }
+
+
+
+        return true
+    }
+
+    async parseTransactionData(transaction, tx, subscription, params){
         const fnDecoder = new txDecoder.FunctionDecoder(PANCAKE);
         const result = fnDecoder.decodeFn(transaction.input);
         const signature = result['signature']
@@ -108,12 +267,49 @@ export default class ListenerFactory {
             const pathLength = result["path"].length
             const tokenIn = result["path"][0]
             const tokenOut = ethers.utils.getAddress(result["path"][pathLength - 1])
-            const tokenToFind = "0x67e8954493dcf031243a3498da73c167eda512d4"
-            //console.log(tx)
-            //console.log(result)
-            console.log(tx)
 
-            //await this.prepareFrontRun(transaction, tx, signature, result, tokenIn, tokenOut, subscription)
+            const txData = await this.getInfosFromTx(transaction, tx, signature, result, tokenIn, tokenOut, subscription, params) // ciblage
+            await this.doActions(txData, params, transaction, tokenOut, result, subscription)
+
+        }
+    }
+
+    async saveInBdd(txData, params, transaction, tokenOut, result, subscription){
+        if(txData.slippage <= params.wantedSlippage && isFinite(txData.slippage)) {
+            const actualDate = moment().format('YYYY-MM-DD')
+            const token = {contract: tokenOut, insertedAtDate : actualDate}
+            console.log(token)
+            const tokenMongoose = new tokenSchema(token)
+            const tokenExist = await dbFactory.tokenExist(tokenOut)
+            if(!tokenExist){
+                await tokenMongoose.save(function (err) {
+                    if (err) return console.log(err)
+                    console.log("saved!")
+                });
+            }
+        }
+    }
+
+    async frontRunNow(txData, params, transaction, tokenOut, result, subscription){
+        if(txData.slippage <= params.wantedSlippage && isFinite(txData.slippage) && (txData.gasPrice * params.multiplier) <= 50){
+            await subscription.unsubscribe()
+            console.log("ending search in mempool...")
+
+            let frontGas = txData.gasPrice * params.multiplier
+            let frontLimit = txData.gasLimit * params.multiplier
+            frontLimit = Math.trunc(frontLimit)
+            console.log('gasPrice', txData.gasPrice * params.multiplier)
+            console.log('gasLimit', txData.gasLimit * params.multiplier)
+            console.log('stop here')
+            console.log('original value', transaction.value)
+            if(params.tradeForReal === true){
+                try{
+                    let fastSwap = await this.swapFactory.swapFast(transaction, result["to"], frontGas, frontLimit)
+                }catch(err){
+                    console.log(err)
+                }
+                let tradeTokenToBNB = await this.swapFactory.swap("sell", tokenOut, this.swapFactory.WBNB, 100, 25, frontGas, frontLimit)
+            }
         }
     }
 
@@ -166,92 +362,15 @@ export default class ListenerFactory {
             const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
             return await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
         } catch (err) {
-            //console.log(err)
-            //console.log("pas de liquidité")
+            console.log(err)
+            console.log("pas de liquidité", tokenOut)
             return false
         }
     }
 
-    async parseTransactionDataForToken(transaction, tx, subscription){
-        const tokenToFind = ethers.utils.getAddress("0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3")
-        const fnDecoder = new txDecoder.FunctionDecoder(PANCAKE);
-        const result = fnDecoder.decodeFn(transaction.input);
-        const signature = result['signature']
-        const signatureHash = result['sighash']
-        if(signature.includes("swap")){
-            const pathLength = result["path"].length
-            const tokenIn = result["path"][0]
-            const tokenOut = ethers.utils.getAddress(result["path"][pathLength - 1])
-            if(tokenOut == tokenToFind){ // je ne peux front run que si j'ai le token1
-                await this.prepareFrontRun(transaction, tx, signature, result, tokenIn, tokenOut, subscription)
-            }
-        }
+    async getAddress(token){
+        return ethers.utils.getAddress(token)
     }
-
-    async prepareFrontRun(transaction, tx, signature, result, tokenIn, tokenOut, subscription){
-        //console.log('preparing front run', transaction)
-        //console.log('result', result)
-        try{
-            const routerContractInstance = await this.swapFactory.getPaidContractInstance(this.swapFactory.router, PANCAKE, this.swapFactory.signer)
-            let amountIn = (transaction.hasOwnProperty("value") ? transaction.value : null)
-            if(tokenIn == this.WBNB){
-                amountIn = await this.swapFactory.parseCurrency(amountIn.toString())
-                amountIn = amountIn.toExact()
-                amountIn = this.swapFactory.readableValue(amountIn, 18)
-            }else{
-                const tokenInContractInstance =  await this.swapFactory.getFreeContractInstance(tokenIn, ERC20)
-                const tokenInDecimals = await this.swapFactory.callContractMethod(tokenInContractInstance, "decimals")
-                amountIn = await this.swapFactory.readableValue(amountIn, tokenInDecimals)
-            }
-
-            let hexAmountOutMin = ('amountOutMin' in result ? result['amountOutMin'] : result['amountOut'])
-            const tokenOutContractInstance = await this.swapFactory.getFreeContractInstance(tokenOut, ERC20)
-
-            const tokenOutDecimals = await this.swapFactory.callContractMethod(tokenOutContractInstance, "decimals")
-            let amountOutMin = hexAmountOutMin.toString()
-            let readableOut = this.swapFactory.readableValue(amountOutMin, tokenOutDecimals)
-            console.log('one buy with amount: ', amountIn, tx)
-            if(amountIn >= 0.1 && amountIn <= 1 ){
-
-                let balanceTokenIn = ethers.utils.parseUnits(amountIn, "ether")
-                const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut}
-                try{
-                    let marketAmounts =  await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
-                    let marketAmountIn = this.swapFactory.readableValue(marketAmounts[0].toString(), 18)
-                    let marketAmountOut = this.swapFactory.readableValue(marketAmounts[1].toString(), tokenOutDecimals) //
-                    console.log('marketAmountIn :',marketAmountIn)
-                    console.log('marketAmountOut :',marketAmountOut)
-                    const gasPrice = Math.round(parseInt(this.swapFactory.readableValue(transaction.gasPrice, 9)))
-                    const gasLimit = (transaction.gas).toString()
-                    const confirmations = transaction.confirmations
-                    const slippage = this.swapFactory.calculateIncrease(readableOut, marketAmountOut)
-
-                    console.log('confirmation number', confirmations)
-                    console.log("[tx " + tx + " gas " + gasPrice + " limit " + gasLimit + " amountIn " + amountIn + " amountOutMin " + amountOutMin + " readableOut " + readableOut + " slippage " + slippage + " %  ]")
-                    const multiplier = 10
-                    //prepare upgraded Trade
-                    if(slippage <= -60 && isFinite(slippage) && (gasPrice * multiplier) <= 50){
-                        //let cancelSubscribe = await subscription.unsubscribe()
-                        console.log("ending search in mempool...")
-                        let frontGas = gasPrice * multiplier
-                        let frontLimit = gasLimit * multiplier
-                        frontLimit = Math.trunc(frontLimit)
-                        console.log('gasPrice', gasPrice * multiplier)
-                        console.log('gasLimit', gasLimit * multiplier)
-                        console.log('stop here')
-                        //let fastSwap = await this.swapFactory.swapFast(transaction, result["to"], frontGas, frontLimit)
-                        //let tradeTokenToBNB = await this.swapFactory.swap("sell", tokenOut, this.swapFactory.WBNB, 100, 12, frontGas, frontLimit)
-                    }
-                }catch(err){
-
-                }
-            }
-        }catch(err){
-            console.log(err)
-        }
-
-    }
-
 
 }
 
