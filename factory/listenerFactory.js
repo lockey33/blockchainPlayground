@@ -1,89 +1,27 @@
-import Web3 from 'web3'
-import ethers from 'ethers'
-import config from '../config.js'
-const mainNet = 'https://bsc-dataseed.binance.org/'
-const mainNetSocket = 'wss://bsc-ws-node.nariox.org:443'
-
-const quickHttp = 'https://purple-weathered-moon.bsc.quiknode.pro/4aca6a71de78877d5bdfeeaf9d5e14ef2da63250/'
-const quickSocket = 'wss://purple-weathered-moon.bsc.quiknode.pro/4aca6a71de78877d5bdfeeaf9d5e14ef2da63250/'
-import axios from 'axios';
-import tokenSchema from '../mongo.schemas/tokenSchema.js';
-import dbFactory from "./dbFactory.js";
-import mongoose from "mongoose";
-mongoose.connect("mongodb://localhost:27017/frontMoney", {useNewUrlParser: true});
 import moment from 'moment'
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const resolve = require('path').resolve
-const txDecoder = require('ethereum-tx-decoder');
-const ganacheFork = 'http://127.0.0.1:7545'
-const ganacheForkSocket = 'ws://127.0.0.1:8545'
-const Tx = require('ethereumjs-tx').Transaction
-import SwapFactory from "./swapFactory.js";
+import ethers from 'ethers'
 import ERC20 from './abis/erc20.js'
 import PANCAKE from './abis/pancake.js'
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const txDecoder = require('ethereum-tx-decoder');
+
 
 export default class ListenerFactory {
 
-    constructor() {
-        this.swapFactory = new SwapFactory("prod", config.dragmoon.mainNetAccount, config.dragmoon.mainNetKey)
-        this.socket = mainNetSocket
+    constructor(config, helper, contractManager, accountManager, swapFactory, dbFactory, scheduleFactory) {
+        this.config = config
+        this.helper = helper
+        this.accountManager = accountManager
+        this.contractManager = contractManager
+        this.swapFactory = swapFactory
+        this.dbFactory = dbFactory
+        this.scheduleFactory = scheduleFactory
         this.tokens = []
     }
 
-    async listenPrice(tokenIn, tokenOut, socket){
-
-        const routerContractInstance = await this.swapFactory.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
-        const tokenInContractInstance =  await this.swapFactory.getFreeContractInstance(tokenIn, ERC20)
-        const tokenOutContractInstance =  await this.swapFactory.getFreeContractInstance(tokenOut, ERC20)
-        const tokenInDecimals = await this.swapFactory.callContractMethod(tokenInContractInstance, "decimals")
-        const tokenOutDecimals = await this.swapFactory.callContractMethod(tokenOutContractInstance, "decimals")
-
-        let balanceTokenIn = await this.swapFactory.callContractMethod(tokenInContractInstance, "balanceOf")
-        console.log(this.swapFactory.readableValue(balanceTokenIn.toString(), tokenInDecimals))
-        let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
-        let initialAmountIn = this.swapFactory.readableValue(amounts[0].toString(), tokenInDecimals)
-        let initialAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals) //
-        console.log('initialAmountIn :',initialAmountIn)
-        console.log('initialAmountOut :',initialAmountOut)
 
 
-        if(amounts !== false){
-            const interval = await this.priceInterval(balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut,tokenOutDecimals, routerContractInstance, socket)
-            return interval
-        }
-    }
-
-    async priceInterval(balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutDecimals, routerContractInstance, socket){
-        return await new Promise((resolve) => {
-            const waitProfit = setInterval(async() => {
-                try{
-                    let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
-                    let actualAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals)
-                    let pourcentageFluctuation = this.swapFactory.calculateIncrease(initialAmountOut,actualAmountOut)
-
-                    console.log('----------------')
-                    console.log('\x1b[36m%s\x1b[0m', "increasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut);
-                    let actualDateAndHour = moment().format("DD/MM/YYYY HH:mm:ss")
-                    //socket.emit("listenToken", {contract: tokenOut, fluctuation: pourcentageFluctuation, date: actualDateAndHour})
-                    try{
-                        await dbFactory.tokenSchema.findByIdAndUpdate({"contract": tokenOut}, {fluctuation: {actualDateAndHour: pourcentageFluctuation}})
-                    }catch(err){
-                        console.log(err)
-                        throw new Error(err)
-                    }
-                    console.log('----------------')
-                }catch(err){
-                    console.log("error within interval")
-                    console.log(err)
-                    resolve(err)
-                }
-            }, 10000);
-
-            resolve(waitProfit)
-        });
-
-    }
 
     async listenNewPairs(){
         const factory = new ethers.Contract(
@@ -141,17 +79,15 @@ export default class ListenerFactory {
 
 
     async listenToPendingTransactions(searchOptions){
-        console.log('starting front run ...')
-        const web3Socket = new Web3(this.socket);
-        let subscription = web3Socket.eth
+        console.log('starting listen ...')
+        let subscription = this.config.web3ws.eth
             .subscribe("pendingTransactions", function(error, result) {})
             .on("data", async(transactionHash)  => {
-                const transaction = await web3Socket.eth.getTransaction(transactionHash)
+                const transaction = await this.config.web3ws.eth.getTransaction(transactionHash)
                 if (transaction) {
                     try{
                         await this.parseTransactionData(transaction, transactionHash, subscription, searchOptions);
                     }catch(err){
-
                     }
                 }
             })
@@ -160,47 +96,46 @@ export default class ListenerFactory {
 
     async getInfosFromTx(transaction, tx, signature, result, tokenIn, tokenOut, subscription, searchOptions){
         try{
-            const routerContractInstance = await this.swapFactory.getPaidContractInstance(this.swapFactory.router, PANCAKE, this.swapFactory.signer)
+            const routerContractInstance = await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
             let amountIn = (transaction.hasOwnProperty("value") ? transaction.value : null)
-            if(tokenIn == this.WBNB){
-                amountIn = await this.swapFactory.parseCurrency(amountIn.toString())
+            if(tokenIn == this.config.WBNB){
+                amountIn = await this.helper.parseCurrency(amountIn.toString())
                 amountIn = amountIn.toExact()
-                amountIn = this.swapFactory.readableValue(amountIn, 18)
+                amountIn = this.helper.readableValue(amountIn, 18)
             }else{
-                const tokenInContractInstance =  await this.swapFactory.getFreeContractInstance(tokenIn, ERC20)
-                const tokenInDecimals = await this.swapFactory.callContractMethod(tokenInContractInstance, "decimals")
-                amountIn = await this.swapFactory.readableValue(amountIn, tokenInDecimals)
+                const tokenInContractInstance =  await this.contractManager.getFreeContractInstance(tokenIn, ERC20)
+                const tokenInDecimals = await this.contractManager.callContractMethod(tokenInContractInstance, "decimals")
+                amountIn = await this.helper.readableValue(amountIn, tokenInDecimals)
             }
 
             let hexAmountOutMin = ('amountOutMin' in result ? result['amountOutMin'] : result['amountOut'])
-            const tokenOutContractInstance = await this.swapFactory.getFreeContractInstance(tokenOut, ERC20)
+            const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
 
-            const tokenOutDecimals = await this.swapFactory.callContractMethod(tokenOutContractInstance, "decimals")
+            const tokenOutDecimals = await this.contractManager.callContractMethod(tokenOutContractInstance, "decimals")
+            const tokenOutName = await this.contractManager.callContractMethod(tokenOutContractInstance, "name")
             let amountOutMin = hexAmountOutMin.toString()
-            let readableOut = this.swapFactory.readableValue(amountOutMin, tokenOutDecimals)
-            console.log('one buy with amount: ', amountIn, tx)
+            let readableOut = this.helper.readableValue(amountOutMin, tokenOutDecimals)
             if(amountIn >= searchOptions.amountBnbFrom && amountIn <= searchOptions.amountBnbTo ){
 
                 let balanceTokenIn = ethers.utils.parseUnits(amountIn, "ether")
                 const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut}
                 try{
-                    let marketAmounts =  await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
-                    let marketAmountIn = this.swapFactory.readableValue(marketAmounts[0].toString(), 18)
-                    let marketAmountOut = this.swapFactory.readableValue(marketAmounts[1].toString(), tokenOutDecimals) //
-                    console.log('marketAmountIn :',marketAmountIn)
-                    console.log('marketAmountOut :',marketAmountOut)
+                    let marketAmounts =  await this.contractManager.callContractMethod(routerContractInstance, "getAmountsOut", options)
+                    let marketAmountIn = this.helper.readableValue(marketAmounts[0].toString(), 18)
+                    let marketAmountOut = this.helper.readableValue(marketAmounts[1].toString(), tokenOutDecimals) //
+                    //console.log('marketAmountIn :',marketAmountIn)
+                    //console.log('marketAmountOut :',marketAmountOut)
+                    //console.log('one buy with amount: ', amountIn, tx)
 
-                    let marketCap = null
-                    if(searchOptions.frontRun !== true){
-                        marketCap = await this.calculateMarketCap(tokenOut,tokenOutContractInstance, tokenOutDecimals, routerContractInstance)
-                        console.log('marketCap', marketCap)
 
-                    }
-                    const gasPrice = Math.round(parseInt(this.swapFactory.readableValue(transaction.gasPrice, 9)))
+                    const gasPrice = Math.round(parseInt(this.helper.readableValue(transaction.gasPrice, 9)))
                     const gasLimit = (transaction.gas).toString()
-                    const slippage = this.swapFactory.calculateIncrease(readableOut, marketAmountOut)
+                    const slippage = this.helper.calculateIncrease(readableOut, marketAmountOut)
 
                     const responseObject = {
+                        tokenContractInstance: tokenOutContractInstance,
+                        tokenDecimals: tokenOutDecimals,
+                        routerContractInstance: routerContractInstance,
                         slippage: slippage,
                         gasLimit: gasLimit,
                         gasPrice: gasPrice,
@@ -208,11 +143,11 @@ export default class ListenerFactory {
                         result: result,
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
+                        tokenOutName: tokenOutName,
                         subscription: subscription,
                         marketAmountOut: marketAmountOut,
-                        marketCap: marketCap
                     }
-                    console.log("[tx " + tx + " gas " + gasPrice + " limit " + gasLimit + " amountIn " + amountIn + " amountOutMin " + amountOutMin + " readableOut " + readableOut + " slippage " + slippage + " % " + tokenOut +"  ]")
+                    //console.log("[tx " + tx + " gas " + gasPrice + " limit " + gasLimit + " amountIn " + amountIn + " amountOutMin " + amountOutMin + " readableOut " + readableOut + " slippage " + slippage + " % " + tokenOut +"  ]")
 
                     return responseObject
 
@@ -224,17 +159,7 @@ export default class ListenerFactory {
             console.log(err)
         }
     }
-    async calculateMarketCap(token, tokenContractInstance, tokenDecimals, routerContractInstance){
-        const totalSupply = await this.swapFactory.callContractMethod(tokenContractInstance, "totalSupply")
-        console.log("totalSupply", totalSupply)
-        let balanceTokenIn = ethers.utils.parseUnits("1", "ether")
-        const options = {balanceTokenIn: balanceTokenIn, tokenIn: "0xe9e7cea3dedca5984780bafc599bd69add087d56", tokenOut: token}
-        let marketAmounts =  await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
-        let marketAmountIn = this.swapFactory.readableValue(marketAmounts[0].toString(), 18)
-        let marketAmountOut = this.swapFactory.readableValue(marketAmounts[1].toString(), tokenDecimals)
-        let marketCap = totalSupply * marketAmountOut
-        return marketCap
-    }
+
 
     async doActions(txData, params, transaction, tokenOut, result, subscription){
 
@@ -249,7 +174,18 @@ export default class ListenerFactory {
             }
         }else{
             if(params.saveInBdd === true){
-                await this.saveInBdd(txData, params, transaction, tokenOut, result, subscription)
+                try{
+                    let marketCapObject = await this.contractManager.calculateMarketCap(tokenOut,txData.tokenContractInstance, txData.tokenDecimals, txData.routerContractInstance)
+
+                    if(marketCapObject.marketCap <= 300000){
+                        console.log("listening to", tokenOut, "marketCap:",marketCapObject.marketCap)
+                        await this.saveInBdd(txData, params, transaction, tokenOut, result, subscription, marketCapObject)
+
+                    }
+                }catch(e){
+                    console.log(e)
+                }
+
             }
         }
 
@@ -274,13 +210,13 @@ export default class ListenerFactory {
         }
     }
 
-    async saveInBdd(txData, params, transaction, tokenOut, result, subscription){
+    async saveInBdd(txData, params, transaction, tokenOut, result, subscription, marketCapObject){
         if(txData.slippage <= params.wantedSlippage && isFinite(txData.slippage)) {
             const actualDate = moment().format('YYYY-MM-DD')
-            const token = {contract: tokenOut, insertedAtDate : actualDate}
+            const token = {contract: tokenOut, price: marketCapObject.tokenPrice, marketCap: marketCapObject.marketCap, name: txData.tokenOutName, insertedAtDate : actualDate}
             console.log(token)
-            const tokenMongoose = new tokenSchema(token)
-            const tokenExist = await dbFactory.tokenExist(tokenOut)
+            const tokenMongoose = new this.dbFactory.tokenSchema(token)
+            const tokenExist = await this.dbFactory.tokenExist(tokenOut)
             if(!tokenExist){
                 await tokenMongoose.save(function (err) {
                     if (err) return console.log(err)
@@ -319,23 +255,23 @@ export default class ListenerFactory {
                 resolve(true)
             }
             const balanceTokenIn = ethers.utils.parseUnits("1", "ether")
-            const routerContractInstance = await this.swapFactory.getPaidContractInstance(this.swapFactory.router, PANCAKE, this.swapFactory.signer)
-            const tokenOutContractInstance =  await this.swapFactory.getFreeContractInstance(tokenOut, ERC20)
-            const tokenOutDecimals = await this.swapFactory.callContractMethod(tokenOutContractInstance, "decimals")
+            const routerContractInstance = await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
+            const tokenOutContractInstance =  await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
+            const tokenOutDecimals = await this.contractManager.callContractMethod(tokenOutContractInstance, "decimals")
             let amounts = null
             try{
-                amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, this.swapFactory.WBNB, tokenOut) // pour 1 bnb, combien
-                let initialAmountIn = this.swapFactory.readableValue(amounts[0].toString(), 18)
-                let initialAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals) //
+                amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, this.config.WBNB, tokenOut) // pour 1 bnb, combien
+                let initialAmountIn = this.helper.readableValue(amounts[0].toString(), 18)
+                let initialAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals) //
                 let tokenObject = {initialAmountIn: initialAmountIn, initialAmountOut:initialAmountOut }
 
                 if(!(tokenOut in this.tokens)){
                     this.tokens[tokenOut] = tokenObject
                 }
                 const waitProfit = setInterval(async() => {
-                    let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, this.swapFactory.WBNB, tokenOut)
-                    let actualAmountOut = this.swapFactory.readableValue(amounts[1].toString(), tokenOutDecimals)
-                    let pourcentageFluctuation = this.swapFactory.calculateIncrease(initialAmountOut, actualAmountOut)
+                    let amounts = await this.checkLiquidity(routerContractInstance, balanceTokenIn, this.config.WBNB, tokenOut)
+                    let actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals)
+                    let pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut, actualAmountOut)
                     //console.log('\x1b[36m%s\x1b[0m', "decreasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut + " " + tokenOut);
                     //console.log(pourcentageFluctuation, targetIncrease)
                     let actualDateAndHour = moment().format("DD/MM/YYYY HH:mm:ss")
@@ -354,19 +290,6 @@ export default class ListenerFactory {
         })
     }
 
-    async checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) {
-        try {
-            if(balanceTokenIn == 0){
-                balanceTokenIn = ethers.utils.parseUnits("1", "ether")
-            }
-            const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
-            return await this.swapFactory.callContractMethod(routerContractInstance, "getAmountsOut", options)
-        } catch (err) {
-            console.log(err)
-            console.log("pas de liquidité", tokenOut)
-            return false
-        }
-    }
 
     async getAddress(token){
         return ethers.utils.getAddress(token)

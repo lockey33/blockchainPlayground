@@ -1,10 +1,54 @@
 import ethers from 'ethers'
+import ERC20 from "./abis/erc20.js";
 
 export default class ContractFactory {
 
     constructor(config, helper) {
         this.config = config
         this.helper = helper
+    }
+    async calculateMarketCap(targetToken, targetTokenContractInstance, targetTokenDecimals, routerContractInstance){
+        const WBNB = this.config.WBNB;
+        const tokenIn = WBNB;
+        const balanceTokenIn = ethers.utils.parseUnits("1", "ether");
+
+        const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: targetToken} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
+
+        const priceOfToken = await this.callContractMethod(routerContractInstance, "getAmountsOut", options)
+        let priceOut = await this.helper.readableValue(priceOfToken[1], targetTokenDecimals)
+
+        const BUSD = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
+        const optionsBUSD = {balanceTokenIn: balanceTokenIn, tokenIn: WBNB, tokenOut: BUSD}
+        const priceOfTokenInBUSD = await this.callContractMethod(routerContractInstance, "getAmountsOut", optionsBUSD)
+        const BUSDContract = await this.getFreeContractInstance(BUSD, ERC20)
+        const BUSDDecimals = await this.callContractMethod(BUSDContract, "decimals")
+        let priceOutInBUSD = await this.helper.readableValue(priceOfTokenInBUSD[1], BUSDDecimals)
+        priceOutInBUSD = Math.trunc(priceOutInBUSD)
+        let priceOfOneTargetToken = (priceOutInBUSD/priceOut).toFixed(18)
+        console.log(priceOfOneTargetToken)
+        let totalSupply = await this.callContractMethod(targetTokenContractInstance, "totalSupply")
+        totalSupply = await this.helper.toDecimals(totalSupply, targetTokenDecimals)
+        let marketCap = priceOfOneTargetToken.toString() * totalSupply
+
+        return {marketCap:Math.trunc(marketCap), tokenPrice:priceOfOneTargetToken}
+    }
+
+    removeExponent(x) {
+        if (Math.abs(x) < 1.0) {
+            var e = parseInt(x.toString().split('e-')[1]);
+            if (e) {
+                x *= Math.pow(10,e-1);
+                x = '0.' + (new Array(e)).join('0') + x.toString().substring(2);
+            }
+        } else {
+            var e = parseInt(x.toString().split('+')[1]);
+            if (e > 20) {
+                e -= 20;
+                x /= Math.pow(10,e);
+                x += (new Array(e+1)).join('0');
+            }
+        }
+        return x;
     }
 
 

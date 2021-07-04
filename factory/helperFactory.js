@@ -36,6 +36,10 @@ export default class HelperFactory {
         return customValue.toFixed(6) // attention j'ai modifier ici, avant c'etait 4
     }
 
+    toDecimals(value, decimalsOfToken){
+        return value / Math.pow(10, decimalsOfToken)
+    }
+
     async formatAmount(parsedAmount){
         if(parsedAmount === 0){
             console.log("Le token n'est pas encore dans mon portefeuille")
@@ -49,7 +53,7 @@ export default class HelperFactory {
     }
 
     calculateIncrease(originalAmount, newAmount){
-        console.log(originalAmount + '-' + newAmount)
+        //console.log(originalAmount + '-' + newAmount)
         let increase = originalAmount - newAmount   // 100 - 70 = 30
         //console.log(newAmount , originalAmount)
         increase = increase / originalAmount  //  30/ 70

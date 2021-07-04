@@ -10,6 +10,9 @@ import ethers from "ethers";
 import PANCAKE from "./abis/pancake.js";
 import HelperFactory from "./helperFactory.js";
 import AccountFactory from "./accountFactory.js";
+import dbFactory from "./dbFactory.js";
+import ListenerFactory from "./listenerFactory.js";
+import scheduleFactory from "./scheduleFactory.js";
 
 
 export default class globalFactory {
@@ -40,8 +43,15 @@ export default class globalFactory {
         this.contracts = this.initContracts(this.config.router, PANCAKE, this.config.provider)
         this.accountManager = new AccountFactory(this.config, this.contractManager)
         this.swap = new SwapFactory(this.config, this.contractManager, this.helper, this.accountManager)
-        //this.listener = new ListenerFactory()
+        this.dbFactory = new dbFactory()
+        this.scheduleFactory = new scheduleFactory(this.config, this.dbFactory, this.contractManager, this.listener, this.helper)
+        this.listener = new ListenerFactory(this.config, this.helper, this.contractManager, this.accountManager, this.swap, this.dbFactory, this.scheduleFactory)
 
+
+        //params
+        this.config.maxMarketCap = 300000
+
+        //launch
     }
 
     initContracts(router, PANCAKE, provider){

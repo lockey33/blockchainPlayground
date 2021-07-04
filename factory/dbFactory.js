@@ -1,12 +1,9 @@
-import axios from 'axios';
 import tokenSchema from '../mongo.schemas/tokenSchema.js';
 import mongoose from "mongoose";
 mongoose.connect("mongodb://localhost:27017/frontMoney", {useNewUrlParser: true});
-import moment from 'moment'
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
 
-class dbFactory {
+
+export default class dbFactory {
 
     constructor(){
         this.tokenSchema = tokenSchema
@@ -15,6 +12,11 @@ class dbFactory {
     async getAllTokens(){
         let allTokens = await tokenSchema.find()
         return allTokens
+    }
+
+    async getTokensFiltered(filter){
+        let tokens = await tokenSchema.find(filter)
+        return tokens
     }
 
     async tokenExist(coinContract) {
@@ -32,4 +34,3 @@ class dbFactory {
     }
 }
 
-export default dbFactory = new dbFactory()

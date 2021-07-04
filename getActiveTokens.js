@@ -1,13 +1,13 @@
-import ListenerFactory from "./factory/listenerFactory.js";
-import tokenSchema from './mongo.schemas/tokenSchema.js';
-const listener = new ListenerFactory()
+import GlobalFactory from "./factory/globalFactory.js";
+import myAccounts from "./static/projectMode/prod/accounts.js";
+const factory =  new GlobalFactory("prod", myAccounts.account1)
 
 const options = {
     saveInBdd: true,
-    wantedSlippage: -30,
-    amountBnbFrom: 0.05,
+    wantedSlippage: -35,
+    amountBnbFrom: 0.02,
     amountBnbTo: 10
 
 }
 
-listener.listenToPendingTransactions(options)
+factory.listener.listenToPendingTransactions(options)

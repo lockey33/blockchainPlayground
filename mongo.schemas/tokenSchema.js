@@ -7,8 +7,11 @@ const Schema = mongoose.Schema;
 let tokenSchema = Schema({
     id: String,
     contract: String,
-    marketCap: String,
+    name: String,
+    price: String,
+    marketCap: Number,
     fluctuation: Array,
+    listening: Boolean,
     insertedAtDate: String
 });
 

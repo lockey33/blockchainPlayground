@@ -6,7 +6,6 @@ import Common from 'ethereumjs-common';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const Tx = require('ethereumjs-tx').Transaction
-
 const BIPS_BASE = JSBI.BigInt(100)
 
 
@@ -23,6 +22,7 @@ export default class SwapFactory {
     async fetchPair(inputTokenInstance, outputTokenInstance){
 
         let pair = await Fetcher.fetchPairData(inputTokenInstance, outputTokenInstance, this.config.provider)
+        console.log(pair)
         const route = new Route([pair], WETHs[inputTokenInstance.chainId])
 
         let pairData = {

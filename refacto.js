@@ -21,6 +21,4 @@ let sellValue = 100 //SELL VALUE
 let sellSlippage = 12 // SELL SLIPPAGE
 let sellGas = 5
 
-await swapFactory.swap("buy",token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
-await swapFactory.swap("sell",token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
 
