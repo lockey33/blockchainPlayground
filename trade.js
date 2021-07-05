@@ -24,9 +24,9 @@ let targetDecrease = -40
 
 let gasLimit = 1000000
 
-let buyValue = 0.001// BUY VALUE
+let buyValue = 0.05// BUY VALUE
 let buySlippage = 12 // BUY SLIPPAGE
-let buyGas = 5 // BUY GAS
+let buyGas = 10 // BUY GAS
 
 let sellValue = 100 //SELL VALUE
 let sellSlippage = 30 // SELL SLIPPAGE
@@ -35,7 +35,7 @@ let sellGas = 10
 
 
 let token1 = ethers.utils.getAddress("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c")
-let token2 = ethers.utils.getAddress("0x192e9321b6244d204d4301afa507eb29ca84d9ef")
+let token2 = ethers.utils.getAddress("0xba07eed3d09055d60caef2bdfca1c05792f2dfad")
 let token2Name = "EVERRISE"
 let goOut = -43
 

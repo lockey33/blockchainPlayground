@@ -84,30 +84,28 @@ export default class scheduleFactory {
     async priceInterval(balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutDecimals, routerContractInstance, timer){
         const jobName = "listenToken_" + tokenOut
         await this.agenda.define(jobName, async (job, done) => {
+            let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
+            if(amounts === false){
+                console.log('HERRREEEEE')
+                return false
+            }
+            let actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals)
+            let pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut,actualAmountOut)
+            //console.log('----------------')
+            //console.log('\x1b[36m%s\x1b[0m', "increasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut);
+            let actualDateAndHour = moment().format("DD/MM/YYYY HH:mm:ss")
+            //socket.emit("listenToken", {contract: tokenOut, fluctuation: pourcentageFluctuation, date: actualDateAndHour})
             try{
-                let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
-                let actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals)
-                let pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut,actualAmountOut)
-                //console.log('----------------')
-                //console.log('\x1b[36m%s\x1b[0m', "increasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut);
-                let actualDateAndHour = moment().format("DD/MM/YYYY HH:mm:ss")
-                //socket.emit("listenToken", {contract: tokenOut, fluctuation: pourcentageFluctuation, date: actualDateAndHour})
-                try{
-                    let fluctuationObject = {}
-                    fluctuationObject = {...fluctuationObject, date: actualDateAndHour, pourcentage: pourcentageFluctuation}
-                    if(pourcentageFluctuation !== 0){
-                        await this.dbFactory.tokenSchema.findOneAndUpdate({"contract": tokenOut}, {$push: {fluctuation: fluctuationObject}, $set: {listening: true}})
-                    }
-                }catch(err){
-                    console.log(err)
-                    throw new Error(err)
+                let fluctuationObject = {}
+                fluctuationObject = {...fluctuationObject, date: actualDateAndHour, pourcentage: pourcentageFluctuation}
+                if(pourcentageFluctuation !== 0){
+                    await this.dbFactory.tokenSchema.findOneAndUpdate({"contract": tokenOut}, {$push: {fluctuation: fluctuationObject}, $set: {listening: true}})
                 }
-                //console.log('----------------')
-                done()
             }catch(err){
-                console.log("error within interval")
                 console.log(err)
             }
+            //console.log('----------------')
+            done()
         })
         await this.agenda.every("4 seconds", jobName);
     }
