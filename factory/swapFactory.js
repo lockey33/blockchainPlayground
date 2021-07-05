@@ -198,4 +198,131 @@ export default class SwapFactory {
     }
 
 
+    async sendTransaction(buyAmount, gasPrice, gasLimit, presaleAddress, rawTransaction = false, count = 1){
+
+
+        buyAmount = ethers.utils.parseUnits(buyAmount.toString(), "ether")
+        gasPrice = ethers.utils.parseUnits(gasPrice.toString(), "gwei")
+
+        const common = Common.default.forCustomChain('mainnet', {
+            name: 'bnb',
+            networkId: 56,
+            chainId: 56
+        }, 'petersburg');
+
+        let nonce = await this.config.web3.eth.getTransactionCount(this.config.recipient)
+
+        if(rawTransaction === false){
+            rawTransaction = {
+                from: this.config.recipient,
+                gasLimit: this.config.web3.utils.toHex(gasLimit),
+                gasPrice: this.config.web3.utils.toHex(gasPrice),
+                nonce: this.config.web3.utils.toHex(nonce),
+                to: presaleAddress,
+                value: this.config.web3.utils.toHex(buyAmount),
+                chainId: 56
+            }
+        }
+        console.log(rawTransaction)
+
+        try{
+            let estimatedGas = await this.config.web3.eth.estimateGas(rawTransaction)
+        }catch(err){
+            console.log(err)
+            console.log(count)
+            count++
+            return await this.sendTransaction(buyAmount, gasPrice, gasLimit, presaleAddress, rawTransaction, count)
+        }
+
+        let privKey = new Buffer(this.config.privateKey, 'hex');
+        let transaction = new Tx(rawTransaction, {common})
+        transaction.sign(privKey)
+        const serializedTx = transaction.serialize().toString('hex')
+        let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
+        console.log(sendTransaction)
+        return sendTransaction
+
+    }
+
+    async listenPriceOfCoin(typeOfListen,tokenIn, tokenOut, tokenOutName, targetIncrease, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut = false){
+
+
+        //let balanceTokenIn = await contractTokenIn.balanceOf(addresses.recipient)
+        //console.log(tokenOut)
+        const routerContractInstance = await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
+
+        const tokenInContractInstance =  await this.contractManager.getFreeContractInstance(tokenIn, ERC20)
+        const tokenOutContractInstance =  await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
+        const tokenInDecimals = await this.contractManager.callContractMethod(tokenInContractInstance, "decimals")
+        const tokenOutDecimals = await this.contractManager.callContractMethod(tokenOutContractInstance, "decimals")
+
+        let balanceTokenIn = await this.contractManager.callContractMethod(tokenInContractInstance, "balanceOf")
+        console.log(this.helper.readableValue(balanceTokenIn.toString(), tokenInDecimals))
+        let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
+        let initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenInDecimals)
+        let initialAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals) //
+        console.log('initialAmountIn :',initialAmountIn)
+        console.log('initialAmountOut :',initialAmountOut)
+
+
+        if(amounts !== false){
+            const intervalAchieved = await this.createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut)
+            console.log("interval fini", intervalAchieved)
+            if(intervalAchieved === true){
+                return true
+            }
+
+        }
+    }
+
+    async createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut){
+        return await new Promise((resolve) => {
+            const waitProfit = setInterval(async() => {
+                try{
+                    let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
+                    let actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals)
+                    let pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut,actualAmountOut)
+
+
+                    console.log('----------------')
+                    if(typeOfListen === "buy"){
+                        console.log('\x1b[36m%s\x1b[0m', "decreasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut + " " + tokenOutName);
+                        console.log(pourcentageFluctuation, targetIncrease)
+                        if(pourcentageFluctuation <= targetIncrease && isFinite(pourcentageFluctuation)){ // vu que c'est amountsOut, je vérifie combien de tokenOut je peux avoir pour 1 BNB, c'est négatif car du coup moins je peux avoir de tokenOut, plus il a pris de la valeur
+                            console.log("La valeur du token " + tokenOut + "a baissé de : " + pourcentageFluctuation +"%,  envoi de l'ordre d'achat en cours" + " cible: " + actualAmountOut + " bnb")
+                            clearInterval(waitProfit)
+                            console.log('buy token: ',value)
+                            //await this.swap("buy",tokenOut, tokenIn, value, sellSlippage, sellGas, gasLimit, feeOnTransfer)
+                            console.log("Acheté lors de la baisse")
+                            resolve(true)
+                        }
+                    }else{
+                        console.log('\x1b[36m%s\x1b[0m', "increasePourcentage : "+ pourcentageFluctuation + "% " + tokenOut + " " + tokenOutName);
+                        if(pourcentageFluctuation >= targetIncrease && isFinite(pourcentageFluctuation)){ // vu que c'est amountsOut, je vérifie combien de tokenOut je peux avoir pour 1 BNB, c'est négatif car du coup moins je peux avoir de tokenOut, plus il a pris de la valeur
+                            console.log("La valeur du token " + tokenOut + "a augmenté de : " + pourcentageFluctuation +"%,  envoi de l'ordre d'achat en cours" + " cible: " + actualAmountOut + " bnb")
+                            clearInterval(waitProfit)
+                            //await this.swap("sell",tokenOut, tokenIn, value, sellSlippage, sellGas, gasLimit, feeOnTransfer)
+                            console.log("Vendu avec profit")
+                            resolve(true)
+                        }
+                        if(goOut !== false && pourcentageFluctuation <= goOut){
+                            console.log("le token mord la poussière, on se barre")
+                            clearInterval(waitProfit)
+                            resolve(true)
+                        }
+
+                    }
+                    console.log('----------------')
+                }catch(err){
+                    console.log("error within interval")
+                    console.log(err)
+                    resolve(err)
+                }
+
+            }, 1000);
+        });
+
+    }
+
+
 }

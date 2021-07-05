@@ -2,11 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/contractFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/contractFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/scheduleFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/scheduleFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dxSnipe.js" beforeDir="false" afterPath="$PROJECT_DIR$/dxSnipe.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/listenerFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/refacto.js" beforeDir="false" afterPath="$PROJECT_DIR$/refacto.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/trade.js" beforeDir="false" afterPath="$PROJECT_DIR$/trade.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/accounts.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/projectMode/prod/accounts.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,6 +109,7 @@
       <workItem from="1625267317478" duration="173000" />
       <workItem from="1625314530780" duration="3362000" />
       <workItem from="1625410942555" duration="5990000" />
+      <workItem from="1625524665529" duration="641000" />
     </task>
     <servers />
   </component>

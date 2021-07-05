@@ -175,12 +175,14 @@ export default class ListenerFactory {
         }else{
             if(params.saveInBdd === true){
                 try{
-                    let marketCapObject = await this.contractManager.calculateMarketCap(tokenOut,txData.tokenContractInstance, txData.tokenDecimals, txData.routerContractInstance)
+                    if(txData) {
+                        let marketCapObject = await this.contractManager.calculateMarketCap(tokenOut, txData.tokenContractInstance, txData.tokenDecimals, txData.routerContractInstance)
 
-                    if(marketCapObject.marketCap <= 300000){
-                        console.log("listening to", tokenOut, "marketCap:",marketCapObject.marketCap)
-                        await this.saveInBdd(txData, params, transaction, tokenOut, result, subscription, marketCapObject)
+                        if (marketCapObject.marketCap <= 300000) {
+                            console.log("listening to", tokenOut, "marketCap:", marketCapObject.marketCap)
+                            await this.saveInBdd(txData, params, transaction, tokenOut, result, subscription, marketCapObject)
 
+                        }
                     }
                 }catch(e){
                     console.log(e)
