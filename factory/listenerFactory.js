@@ -9,73 +9,17 @@ const txDecoder = require('ethereum-tx-decoder');
 
 export default class ListenerFactory {
 
-    constructor(config, helper, contractManager, accountManager, swapFactory, dbFactory, scheduleFactory) {
+    constructor(config, helper, contractManager, accountManager, dbFactory, scheduleFactory) {
         this.config = config
         this.helper = helper
         this.accountManager = accountManager
         this.contractManager = contractManager
-        this.swapFactory = swapFactory
         this.dbFactory = dbFactory
         this.scheduleFactory = scheduleFactory
         this.tokens = []
     }
 
 
-
-
-    async listenNewPairs(){
-        const factory = new ethers.Contract(
-            "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73",
-            ['event PairCreated(address indexed token0, address indexed token1, address pair, uint)'],
-            this.swapFactory.signer
-        );
-
-        let createdTokens = []
-        factory.on('PairCreated', async (token0, token1, pairAddress) => {
-            console.log(`
-                New pair detected
-                =================
-                token0: ${token0}
-                token1: ${token1}
-                pairAddress: ${pairAddress}
-           `);
-            let tokenOut = null
-            if(token1 === "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"){
-                tokenOut = token0
-                createdTokens.push(tokenOut)
-            }else{
-                tokenOut = token1
-                createdTokens.push(tokenOut)
-            }
-        })
-
-        this.listenChangesinArray(createdTokens, (tokenOut) => {
-            const tokenContract = new ethers.Contract(
-                tokenOut,
-                ['event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)'],
-                this.swapFactory.signer
-            );
-            tokenContract.on('OwnershipTransferred', async (previousOwner, newOwner) => {
-                console.log('ownership renounced for token', tokenOut)
-                console.log('new owner', newOwner)
-                console.log('previousOwner', previousOwner)
-                this.getTokenIncrease(tokenOut, 50, 10)
-                setInterval(() => {console.log(this.tokens)}, 60000)
-            })
-        })
-
-    }
-
-    listenChangesinArray(arr,callback){
-        // Add more methods here if you want to listen to them
-        ['pop','push','reverse','shift','unshift','splice','sort'].forEach((m)=>{
-            arr[m] = function(){
-                var res = Array.prototype[m].apply(arr, arguments);  // call normal behaviour
-                callback.apply(arr, arguments);  // finally call the callback supplied
-                return res;
-            }
-        });
-    }
 
 
     async listenToPendingTransactions(searchOptions){
@@ -175,13 +119,16 @@ export default class ListenerFactory {
         }else{
             if(params.saveInBdd === true){
                 try{
-                    let marketCapObject = await this.contractManager.calculateMarketCap(tokenOut,txData.tokenContractInstance, txData.tokenDecimals, txData.routerContractInstance)
+                    if(txData){
+                        let marketCapObject = await this.contractManager.calculateMarketCap(tokenOut,txData.tokenContractInstance, txData.tokenDecimals, txData.routerContractInstance)
 
-                    if(marketCapObject.marketCap <= 300000){
-                        console.log("listening to", tokenOut, "marketCap:",marketCapObject.marketCap)
-                        await this.saveInBdd(txData, params, transaction, tokenOut, result, subscription, marketCapObject)
+                        if(marketCapObject.marketCap <= 300000){
+                            console.log("listening to", tokenOut, "marketCap:",marketCapObject.marketCap)
+                            await this.saveInBdd(txData, params, transaction, tokenOut, result, subscription, marketCapObject)
 
+                        }
                     }
+
                 }catch(e){
                     console.log(e)
                 }

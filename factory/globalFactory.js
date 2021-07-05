@@ -4,7 +4,6 @@ import testnetConfig from "../static/projectMode/testnet/config.js";
 import prodConfig from "../static/projectMode/prod/config.js";
 
 //Factories
-import SwapFactory from "./swapFactory.js";
 import ContractFactory from "./contractFactory.js";
 import ethers from "ethers";
 import PANCAKE from "./abis/pancake.js";
@@ -42,10 +41,9 @@ export default class globalFactory {
         this.contractManager = new ContractFactory(this.config, this.helper)
         this.contracts = this.initContracts(this.config.router, PANCAKE, this.config.provider)
         this.accountManager = new AccountFactory(this.config, this.contractManager)
-        this.swap = new SwapFactory(this.config, this.contractManager, this.helper, this.accountManager)
         this.dbFactory = new dbFactory()
         this.scheduleFactory = new scheduleFactory(this.config, this.dbFactory, this.contractManager, this.listener, this.helper)
-        this.listener = new ListenerFactory(this.config, this.helper, this.contractManager, this.accountManager, this.swap, this.dbFactory, this.scheduleFactory)
+        this.listener = new ListenerFactory(this.config, this.helper, this.contractManager, this.accountManager, this.dbFactory, this.scheduleFactory)
 
 
         //params
