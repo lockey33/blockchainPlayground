@@ -24,19 +24,16 @@ const factory =  new GlobalFactory("prod", init.account, init.blockchain);
 (async () => {
     await factory.init() // permet de charger les contrats et autres
 
-    await factory.scheduleFactory.agenda.on("start", (job) => {
+/*    await factory.scheduleFactory.agenda.on("start", (job) => {
         //console.log("Job %s starting", job.attrs.name);
     });
 
     await factory.scheduleFactory.listenJobAuto()
     console.log('Refresh des jobs planifié')
 
-    await factory.scheduleFactory.refreshTokensData()
-    console.log("Refresh des tokens planifié")
-
     await factory.scheduleFactory.agenda.on("fail", (err, job) => {
         console.log(`Job failed with error: `, job);
-    });
+    });*/
 })();
 
 process.stdin.resume();//so the program will not close instantly
@@ -73,16 +70,6 @@ app.use(bodyParser.raw());
 
 
 
-app.get('/getTokens', async (req,res) => {
-    let filters = {}
-    if(init.blockchain ==="bsc"){
-        filters = {marketCap: {$lt: 300000}, listening: true}
-    }
-    const allTokens = await factory.dbFactory.getTokensFiltered(filters)
-    const setListening = await factory.dbFactory.tokenSchema.updateMany({listening: false}, {$set:{listening: true}})
-    console.log('get tokens')
-    res.send(allTokens)
-})
 
 app.post('/dxSnipe', async (req, res) => {
 
@@ -94,38 +81,16 @@ app.post('/dxSnipe', async (req, res) => {
 
 app.get('/stopListen', async (req,res) => {
     const removeJobs =  await factory.scheduleFactory.agenda.cancel({ });
-    const setListening = await factory.dbFactory.tokenSchema.updateMany({listening: true}, {$set:{listening: false}})
+    const setListening = await factory.dbFactory.snipeSchema.updateMany({state: "pending"}, {$set:{state: "done"}})
     res.send("stopped listening")
 })
 
-app.get('/deleteTokens', async (req,res) => {
-    const deleteAllTokens = await factory.dbFactory.deleteAllTokens()
-    const removeJobs =  await factory.scheduleFactory.agenda.cancel({ });
-    res.send("all deleted")
-})
 
 
-app.post('/listenTokens', async (req,res) => {
-    const data = req.body
-    let tokens = data.tokens
 
-    try{
-        await Promise.all(tokens.map(async (token) => {
-            const tokenIn = factory.config.WBNB
-            const tokenOut = token.contract
-            const timer = data.timer
-            await factory.listener.listenPrice(tokenIn, tokenOut, timer)
-        }))
-        await res.send("Listening")
-
-    }catch(err){
-        await res.send(err)
-    }
-})
 
 
 server.listen(port, () => {
 
-
-    console.log("Serveur à l'écoute")
+    console.log("dxSnipe launched...")
 })
