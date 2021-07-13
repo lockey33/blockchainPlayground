@@ -1,6 +1,6 @@
-import { createRequire } from 'module';
+import init from "./init.js";
 import GlobalFactory from "./factory/globalFactory.js";
-import myAccounts from "./static/projectMode/prod/accounts.js";
+import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const resolve = require('path').resolve
 
@@ -18,10 +18,15 @@ const io = require('socket.io')(server, {
         origin: '*',
     }
 });
+const factory =  new GlobalFactory("prod", init.account, init.blockchain);
 
-const factory =  new GlobalFactory("prod", myAccounts.account1);
 
 (async () => {
+    await factory.init() // permet de charger les contrats et autres
+
+    await factory.scheduleFactory.agenda.on("start", (job) => {
+        //console.log("Job %s starting", job.attrs.name);
+    });
 
     await factory.scheduleFactory.listenJobAuto()
     console.log('Refresh des jobs planifié')
@@ -29,17 +34,22 @@ const factory =  new GlobalFactory("prod", myAccounts.account1);
     await factory.scheduleFactory.refreshTokensData()
     console.log("Refresh des tokens planifié")
 
-
+    await factory.scheduleFactory.agenda.on("fail", (err, job) => {
+        console.log(`Job failed with error: `, job);
+    });
 })();
 
 process.stdin.resume();//so the program will not close instantly
 
 function exitHandler(options, exitCode) {
-    factory.scheduleFactory.stopAllJobs().then(() => {
+/*    factory.scheduleFactory.stopAllJobs().then(() => {
         if (options.cleanup) console.log('clean');
         if (exitCode || exitCode === 0) console.log(exitCode);
         if (options.exit) process.exit();
-    })
+    })*/
+    if (options.cleanup) console.log('clean');
+    if (exitCode || exitCode === 0) console.log(exitCode);
+    if (options.exit) process.exit();
 }
 
 //do something when app is closing
@@ -64,11 +74,22 @@ app.use(bodyParser.raw());
 
 
 app.get('/getTokens', async (req,res) => {
-    const filters = {marketCap: {$lt: 300000}, listening: true}
-    const allTokens = await factory.dbFactory.getTokensFiltered({marketCap: filters.marketCap})
+    let filters = {}
+    if(init.blockchain ==="bsc"){
+        filters = {marketCap: {$lt: 300000}, listening: true}
+    }
+    const allTokens = await factory.dbFactory.getTokensFiltered(filters)
     const setListening = await factory.dbFactory.tokenSchema.updateMany({listening: false}, {$set:{listening: true}})
     console.log('get tokens')
     res.send(allTokens)
+})
+
+app.post('/dxSnipe', async (req, res) => {
+
+    console.log(req.body)
+
+    //await factory.snipeFactory.snipePresale(req.body.buyerAddress, req.body.presaleAddress, null, req.body.contributeAmount, req.body.gasPrice, req.body.gasLimit)
+    res.send("sniped")
 })
 
 app.get('/stopListen', async (req,res) => {

@@ -1,17 +1,21 @@
-import ListenerFactory from "./factory/listenerFactory.js";
+import GlobalFactory from "./factory/globalFactory.js"
+import myAccounts from "./static/projectMode/prod/accounts.js";
 import ethers from "ethers";
 import PANCAKE from "./factory/abis/pancake.js";
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const resolve = require('path').resolve
 const nodemailer = require('nodemailer');
-const listener = new ListenerFactory()
 const balanceTokenIn = ethers.utils.parseUnits("1", "ether")
-const routerContractInstance = await listener.swapFactory.getPaidContractInstance(listener.swapFactory.router, PANCAKE, listener.swapFactory.signer)
-const WBNB = listener.swapFactory.WBNB
+
+const factory =  new GlobalFactory("prod", myAccounts.cash)
+const swapFactory = factory.swap
+
+const WBNB = factory.config.WBNB
 let params = process.argv.slice(2)
 const { exec } = require("child_process");
-const tokenToSnipe = await listener.getAddress(params[0])
+
+const tokenToSnipe = await ethers.utils.getAddress(params[0])
 const fs = require('fs')
 
 const transporter = nodemailer.createTransport({
@@ -47,13 +51,13 @@ let fileName = tokenToSnipe + ".txt"
 
 const waitLiquidity = setInterval(async() => {
     tryAmount++
-    let liquidity = await listener.checkLiquidity(routerContractInstance, balanceTokenIn, WBNB, tokenToSnipe)
+    let liquidity = await factory.contractManager.checkLiquidity( balanceTokenIn, WBNB, tokenToSnipe)
     console.log("Nombre d'itérations :", tryAmount, liquidity)
     if(liquidity !== false){
         clearInterval(waitLiquidity)
         try{
             console.log('achat en cours')
-            await listener.swapFactory.buyFast(WBNB, tokenToSnipe, buyValue, buySlippage, buyGas, gasLimit, true, estimateBuy)
+            await factory.swap.buyFast(WBNB, tokenToSnipe, buyValue, buySlippage, buyGas, gasLimit, true, estimateBuy)
             fs.writeFile(fileName, 'achat en cours', function (err) {
                 if (err) return console.log(err);
                 console.log('error logs');
@@ -66,8 +70,8 @@ const waitLiquidity = setInterval(async() => {
             });
             killForeverProcess()
         }
-        const increased = await listener.swapFactory.listenPriceOfCoin("sell", WBNB, tokenToSnipe, "Sniping", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true)
-        await listener.swapFactory.swap("sell",tokenToSnipe, WBNB, sellValue, sellSlippage, sellGas, gasLimit, true)
+        const increased = await factory.swap.listenPriceOfCoin("sell", WBNB, tokenToSnipe, "Sniping", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true)
+        await swapFactory.swap("sell",tokenToSnipe, WBNB, sellValue, sellSlippage, sellGas, gasLimit, true)
         killForeverProcess()
 
     }

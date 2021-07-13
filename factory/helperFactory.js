@@ -1,5 +1,6 @@
 import ethers from 'ethers'
 import {CurrencyAmount, TokenAmount, JSBI, Token} from "./pancakeswap-sdk-v2/dist/index.js";
+import axios from "axios";
 
 export default class HelperFactory {
 
@@ -29,6 +30,14 @@ export default class HelperFactory {
             return new TokenAmount(tokenInstance, JSBI.BigInt(typedValueParsed))
         }
         return 0
+    }
+
+
+
+    async getKccUsdPrice(){
+        const response = await axios.get("https://explorer.kcc.io/api/chainstat/kcs")
+        this.config.priceUsd = response.data.data.priceUsd
+        return response.data.data.priceUsd
     }
 
     readableValue(value, decimals){

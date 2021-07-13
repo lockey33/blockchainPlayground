@@ -46,7 +46,6 @@ export default class SwapFactory {
 
     async buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy = false){
         const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
-        const routerContractInstance =  await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
         const tokenOutDecimals = await this.contractManager.callContractMethod(tokenOutContractInstance, "decimals")
 
         const tokenInInstance = new Token(this.config.chain, tokenIn, 18)
@@ -69,9 +68,9 @@ export default class SwapFactory {
         let confirm = null
         if(estimateBuy) {
             try {
-                let estimateGas = await routerContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
+                let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
                 console.log(estimateGas)
-                const result = await this.contractManager.callContractMethod(routerContractInstance, swap.methodName, swap.args, transactionOptions)
+                const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
                 confirm = await result.wait()
             } catch (err) {
                 console.log("gas estimation error, retry now")
@@ -79,7 +78,7 @@ export default class SwapFactory {
                 return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy)
             }
         }else{
-            const result = await this.contractManager.callContractMethod(routerContractInstance, swap.methodName, swap.args, transactionOptions)
+            const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
             confirm = await result.wait()
         }
 
@@ -91,7 +90,6 @@ export default class SwapFactory {
         //Contracts
         const tokenInContractInstance =  await this.contractManager.getFreeContractInstance(tokenIn, ERC20)
         const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
-        const routerContractInstance =  await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
 
         //Tokens
         const tokenInDecimals = await this.contractManager.callContractMethod(tokenInContractInstance, "decimals")
@@ -140,7 +138,7 @@ export default class SwapFactory {
         console.log(swap)
         //verify transaction
         try{
-            let estimateGas = await routerContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
+            let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
             console.log(estimateGas)
         }catch(err){
             console.log("gas estimation error, retry now")
@@ -149,7 +147,7 @@ export default class SwapFactory {
                 return await this.swap(typeOfSwap, tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, true)
             }
         }
-        let result = await this.contractManager.callContractMethod(routerContractInstance, swap.methodName, swap.args, transactionOptions)
+        let result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
         let confirm = await result.wait()
         console.log(confirm)
         return confirm
@@ -239,7 +237,9 @@ export default class SwapFactory {
         transaction.sign(privKey)
         const serializedTx = transaction.serialize().toString('hex')
         let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
+
         console.log(sendTransaction)
+
         return sendTransaction
 
     }
@@ -249,7 +249,6 @@ export default class SwapFactory {
 
         //let balanceTokenIn = await contractTokenIn.balanceOf(addresses.recipient)
         //console.log(tokenOut)
-        const routerContractInstance = await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
 
         const tokenInContractInstance =  await this.contractManager.getFreeContractInstance(tokenIn, ERC20)
         const tokenOutContractInstance =  await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
@@ -258,7 +257,7 @@ export default class SwapFactory {
 
         let balanceTokenIn = await this.contractManager.callContractMethod(tokenInContractInstance, "balanceOf")
         console.log(this.helper.readableValue(balanceTokenIn.toString(), tokenInDecimals))
-        let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
+        let amounts = await this.contractManager.checkLiquidity( balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
         let initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenInDecimals)
         let initialAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals) //
         console.log('initialAmountIn :',initialAmountIn)
@@ -266,7 +265,7 @@ export default class SwapFactory {
 
 
         if(amounts !== false){
-            const intervalAchieved = await this.createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut)
+            const intervalAchieved = await this.createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut)
             console.log("interval fini", intervalAchieved)
             if(intervalAchieved === true){
                 return true
@@ -275,11 +274,11 @@ export default class SwapFactory {
         }
     }
 
-    async createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, routerContractInstance, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut){
+    async createIntervalForCoin(typeOfListen, targetIncrease, balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutName, tokenOutDecimals, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut){
         return await new Promise((resolve) => {
             const waitProfit = setInterval(async() => {
                 try{
-                    let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
+                    let amounts = await this.contractManager.checkLiquidity( balanceTokenIn, tokenIn, tokenOut)
                     let actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals)
                     let pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut,actualAmountOut)
 
