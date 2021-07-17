@@ -22,6 +22,10 @@ export default class dbFactory {
         return snipes
     }
 
+    async updateWallet(walletData){
+        await this.snipeSchema.updateOne({buyerAddress: walletData.buyerAddress}, walletData)
+    }
+
     async buyerExist(buyerAddress) {
         let buyer = await snipeSchema.findOne({"buyerAddress": buyerAddress})
         if (buyer == null) {

@@ -4,6 +4,7 @@ import PANCAKE from './abis/pancake.js'
 import { JSBI, WETH as WETHs, ETHER, Fraction, Pair, Price, Percent, Trade, TradeType, Route, ChainId, Currency, CurrencyAmount, Router, Fetcher, TokenAmount, Token  } from './pancakeswap-sdk-v2/dist/index.js'
 import Common from 'ethereumjs-common';
 import { createRequire } from 'module';
+import moment from "moment";
 const require = createRequire(import.meta.url);
 const Tx = require('ethereumjs-tx').Transaction
 const BIPS_BASE = JSBI.BigInt(100)
@@ -11,11 +12,12 @@ const BIPS_BASE = JSBI.BigInt(100)
 
 export default class SwapFactory {
 
-    constructor(config, contractManager, helper, accountManager) {
+    constructor(config, contractManager, helper, accountManager, dbFactory) {
         this.config = config
         this.contractManager = contractManager
         this.helper = helper
         this.accountManager = accountManager
+        this.dbFactory = dbFactory
 
     }
 
@@ -196,9 +198,9 @@ export default class SwapFactory {
     }
 
 
-    async sendTransaction(buyAmount, gasPrice, gasLimit, presaleAddress, rawTransaction = false, count = 1){
+    async sendTransaction(buyAmount, gasPrice, gasLimit, presaleAddress, rawTransaction = false, count = 1, snipeWalletAddress){
 
-
+        const actualDate = moment().format("X")
         buyAmount = ethers.utils.parseUnits(buyAmount.toString(), "ether")
         gasPrice = ethers.utils.parseUnits(gasPrice.toString(), "gwei")
 
@@ -212,7 +214,7 @@ export default class SwapFactory {
 
         if(rawTransaction === false){
             rawTransaction = {
-                from: this.config.recipient,
+                from: snipeWalletAddress,
                 gasLimit: this.config.web3.utils.toHex(gasLimit),
                 gasPrice: this.config.web3.utils.toHex(gasPrice),
                 nonce: this.config.web3.utils.toHex(nonce),
@@ -229,6 +231,13 @@ export default class SwapFactory {
             console.log(err)
             console.log(count)
             count++
+            await this.dbFactory.snipeSchema.updateOne(
+                {snipeWallets: {$elemMatch: {address: snipeWalletAddress}}},
+                {
+                    $push: {
+                        'snipeWallets.$.logs': {date:actualDate , text: err.toString()},
+                    }
+                })
             return await this.sendTransaction(buyAmount, gasPrice, gasLimit, presaleAddress, rawTransaction, count)
         }
 
@@ -236,11 +245,18 @@ export default class SwapFactory {
         let transaction = new Tx(rawTransaction, {common})
         transaction.sign(privKey)
         const serializedTx = transaction.serialize().toString('hex')
-        let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
 
-        console.log(sendTransaction)
+        //let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
+        await this.dbFactory.snipeSchema.updateOne(
+            {snipeWallets: {$elemMatch: {address: snipeWalletAddress}}},
+            {
+                $push: {
+                    'snipeWallets.$.logs': {date:actualDate , text: "snipe successfull"},
+                }
+            })
+        //console.log(sendTransaction)
 
-        return sendTransaction
+        //return sendTransaction
 
     }
 

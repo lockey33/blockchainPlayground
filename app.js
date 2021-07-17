@@ -1,5 +1,7 @@
 import init from "./init.js";
 import GlobalFactory from "./factory/globalFactory.js";
+import ethers from 'ethers'
+import moment from "moment";
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const resolve = require('path').resolve
@@ -68,15 +70,66 @@ app.use(bodyParser.json({limit: '5mb'}))
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.raw());
 
+app.post('/listenBnb', async (req, res) => {
+    let wallets = req.body
+    let checkSummedWallets = []
+    wallets.map((wallet) => {
+        checkSummedWallets.push(ethers.utils.getAddress(wallet.address))
+    })
 
+    await factory.scheduleFactory.listenWalletsBalance(checkSummedWallets)
 
+    res.send("Listening wallet balance")
+})
+
+app.post('/updateWallet', async (req, res) => {
+    const walletData = req.body.bddWallet
+    await factory.dbFactory.updateWallet(walletData)
+    res.send("Wallet updated")
+})
+
+app.post('/checkWallet', async (req, res) => {
+    const walletAddress = ethers.utils.getAddress(req.body.walletAddress)
+    let found = await factory.snipeFactory.checkWallet(walletAddress)
+    if(found === false){
+        found = await factory.snipeFactory.createClientAndPaymentWallet(walletAddress)
+    }
+    res.send(found)
+})
+
+app.post('/createSnipeWallets', async (req, res) => {
+    const walletAddress = ethers.utils.getAddress(req.body.walletAddress)
+    const walletAmount = 3
+
+    await factory.snipeFactory.createSnipeWallets(walletAddress, walletAmount)
+
+    res.send("snipeWallets created")
+})
 
 app.post('/dxSnipe', async (req, res) => {
-
+    console.log('dxsnipe')
+    const formatedAmount = parseFloat(req.body.contributeAmount.replace(',', '.'));
+    const formatedGasPrice = parseFloat(req.body.gasPrice.replace(',', '.'));
+    let presaleStartTime = req.body.presaleStartTime
+    const actualDateUnix = moment().unix()
+    let unixStartTime = moment(presaleStartTime).format("X")
+    console.log(actualDateUnix)
+    console.log(unixStartTime)
     console.log(req.body)
+    await factory.snipeFactory.planifySnipe(
+        ethers.utils.getAddress(req.body.buyerAddress),
+        ethers.utils.getAddress(req.body.presaleAddress),
+        null, //todo ether.utils.getAddress
+        formatedAmount,
+        formatedGasPrice,
+        req.body.gasLimit,
+        presaleStartTime,
+        unixStartTime,
+        req.body.snipeWalletAddress
+    )
 
-    //await factory.snipeFactory.snipePresale(req.body.buyerAddress, req.body.presaleAddress, null, req.body.contributeAmount, req.body.gasPrice, req.body.gasLimit)
-    res.send("sniped")
+    res.send("snipe launched for " + formatedAmount + " BNB")
+
 })
 
 app.get('/stopListen', async (req,res) => {
@@ -92,5 +145,5 @@ app.get('/stopListen', async (req,res) => {
 
 server.listen(port, () => {
 
-    console.log("dxSnipe launched...")
+    console.log("dxSnipe launched...", port)
 })

@@ -59,6 +59,11 @@ export default class AccountFactory {
     }
 
 
+    async getWalletBalance(wallet){
+        let balance = await this.config.provider.getBalance(wallet)
+        return balance
+    }
+
     async getAccountBalance(){
         let balance = await this.config.provider.getBalance(this.config.recipient)
         console.log('account balance', balance)

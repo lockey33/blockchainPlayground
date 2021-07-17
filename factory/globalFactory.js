@@ -38,9 +38,9 @@ export default class globalFactory {
         this.helper = new HelperFactory(this.config)
         this.contractManager = new ContractFactory(this.config, this.helper)
         this.accountManager = new AccountFactory(this.config, this.contractManager)
-        this.swap = new SwapFactory(this.config, this.contractManager, this.helper, this.accountManager)
         this.dbFactory = new dbFactory()
-        this.scheduleFactory = new scheduleFactory(this.config, this.dbFactory, this.contractManager, this.listener, this.helper)
+        this.swap = new SwapFactory(this.config, this.contractManager, this.helper, this.accountManager, this.dbFactory)
+        this.scheduleFactory = new scheduleFactory(this.config, this.dbFactory, this.contractManager, this.listener, this.helper, this.accountManager)
         this.listener = new ListenerFactory(this.config, this.helper, this.contractManager, this.accountManager, this.swap, this.dbFactory, this.scheduleFactory)
         this.snipeFactory = new snipeFactory(this.config, this.helper, this.contractManager, this.accountManager, this.swap, this.dbFactory, this.scheduleFactory, this.listener)
 

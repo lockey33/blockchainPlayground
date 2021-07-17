@@ -9,7 +9,7 @@ const mongoConnectionString = "mongodb://localhost:27017/frontMoney"
 
 export default class scheduleFactory {
 
-    constructor(config, dbFactory, contractManager, listener, helper){
+    constructor(config, dbFactory, contractManager, listener, helper, accountManager){
         this.tokenSchema = tokenSchema
         this.config = config
         this.dbFactory = dbFactory
@@ -17,8 +17,9 @@ export default class scheduleFactory {
         this.listener = listener
         this.helper = helper
         this.agenda = new Agenda({ db: { address: mongoConnectionString, collection: "agendaJobs", maxConcurrency: 20, defaultConcurrency: 5 } })
-
+        this.accountManager = accountManager
     }
+
 
 
 
@@ -114,6 +115,34 @@ export default class scheduleFactory {
             done()
         })
         await this.agenda.every("4 seconds", jobName);
+    }
+
+    async listenWalletsBalance(wallets){
+        await this.agenda.start()
+        const jobName = "listenWalletsBalance"
+        await this.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
+            try{
+                await Promise.all(
+                    wallets.map(async (wallet) => {
+                        const balance = await this.accountManager.getWalletBalance(wallet)
+                        const readableBalance = await this.helper.readableValue(balance, 18)
+                        await this.dbFactory.snipeSchema.updateOne(
+                            {snipeWallets: {$elemMatch: {address: wallet}}},
+                            {
+                                $set: {
+                                    'snipeWallets.$.balance': readableBalance,
+                                }
+                            })
+                    })
+                )
+                done()
+            }
+            catch(err){
+                console.log(err)
+            }
+        })
+
+        await this.agenda.every("1 minutes", jobName);
     }
 
 

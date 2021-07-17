@@ -25,7 +25,45 @@ export default class SnipeFactory {
 
     }
 
-    async createWalletForClientAndGetFunds(buyerAddress, contributeAmount, presaleAddress, tokenAddress){
+    async createClientAndPaymentWallet(buyerAddress){
+
+        try{
+            buyerAddress = ethers.utils.getAddress(buyerAddress)
+
+            const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
+            const buyerExist = await this.dbFactory.buyerExist(buyerAddress)
+
+            if(!buyerExist){
+                const newWallet = await this.accountManager.createWallet()
+                let mnemonicWallet = ethers.Wallet.fromMnemonic(newWallet.mnemonic.phrase)
+                const paymentWallet = {address: newWallet.address, mnemonic: newWallet.mnemonic, privateKey: mnemonicWallet.privateKey}
+                const truncAddress = this.helper.truncate(buyerAddress, 15)
+                const buyerInfo = {
+                    "buyerAddress" : buyerAddress,
+                    "truncBuyerAddress" : truncAddress,
+                    "paymentWallet": paymentWallet,
+                    "insertedAtDate" : actualDate
+                }
+
+                const snipeMongoose = new this.dbFactory.snipeSchema(buyerInfo)
+                await snipeMongoose.save()
+                const buyer = await this.checkWallet(buyerAddress)
+
+                return buyer
+            }
+
+        }catch(err){
+            return err
+        }
+
+    }
+
+    async insertSnipeInfo(buyerAddress, contributeAmount, presaleAddress, tokenAddress){
+        buyerAddress = ethers.utils.getAddress(buyerAddress)
+        presaleAddress = ethers.utils.getAddress(presaleAddress)
+        if(tokenAddress){
+            tokenAddress = ethers.utils.getAddress(tokenAddress) // auto claim with this line in the future
+        }
 
         try{
             const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
@@ -38,62 +76,119 @@ export default class SnipeFactory {
                 "state" : "pending"
             }
 
-            const buyerExist = await this.dbFactory.buyerExist(buyerAddress)
+            await this.dbFactory.snipeSchema.updateOne(
+                {"buyerAddress": buyerAddress},
+                {
+                    $push: {
+                        snipes: snipe,
+                    }
+                })
 
-            if(!buyerExist){
+            return true
+
+        }catch(err){
+            console.log(err)
+            return err
+        }
+    }
+
+
+
+    async checkWallet(buyerAddress){
+        buyerAddress = ethers.utils.getAddress(buyerAddress)
+
+        const walletInBDD = await this.dbFactory.getSnipeFiltered({buyerAddress: buyerAddress})
+        if(walletInBDD.length > 0){
+            return walletInBDD
+        }else{
+            console.log("failed to get buyer")
+            return false
+        }
+    }
+
+    async createSnipeWallets(buyerAddress, walletAmount){
+        try{
+            for(let i = 1; i <= walletAmount; i++){
                 const newWallet = await this.accountManager.createWallet()
                 let mnemonicWallet = ethers.Wallet.fromMnemonic(newWallet.mnemonic.phrase)
-                const storageAddress = {address: newWallet.address, mnemonic: newWallet.mnemonic, privateKey: mnemonicWallet.privateKey}
+                const actualDate = moment().unix()
+                const truncAddress = this.helper.truncate(newWallet.address, 15)
 
-                const buyerInfo = {
-                    "buyerAddress" : buyerAddress,
-                    "storage": storageAddress,
-                    "insertedAtDate" : actualDate
+                const snipeWallet = {
+                    address: newWallet.address,
+                    truncAddress: truncAddress,
+                    mnemonic: newWallet.mnemonic,
+                    privateKey: mnemonicWallet.privateKey,
+                    state: "available",
+                    logs: [{date:actualDate , text: "Wallet created, waiting for snipe"}],
+                    showPrivateKey: false,
+                    showLogs: false
                 }
-                buyerInfo.snipes = snipe
 
-                const snipeMongoose = new this.dbFactory.snipeSchema(buyerInfo)
-                await snipeMongoose.save()
-
-            }else{
                 await this.dbFactory.snipeSchema.updateOne(
                     {"buyerAddress": buyerAddress},
                     {
                         $push: {
-                            snipes: snipe,
+                            snipeWallets: snipeWallet,
                         }
                     })
             }
-
-            const buyerInBDD = await this.dbFactory.getSnipeFiltered({buyerAddress: buyerAddress})
-
-            if(buyerInBDD.length > 0){
-                const transaction = await this.accountManager.transfer(contributeAmount, buyerInBDD[0].buyerAddress, buyerInBDD[0].storage.address)
-                return transaction
-            }else{
-                console.log("failed")
-                return "failed getting snipe"
-            }
-
+            return true
         }catch(err){
+            console.log(err)
             return err
         }
+    }
+
+    async planifySnipe(buyerAddress, presaleAddress, tokenAddress = null, contributeAmount, gasPrice, gasLimit, timeZoneStartTime, unixStartTime, snipeWalletAddress){
+
+        await this.dbFactory.snipeSchema.updateOne(
+            {snipeWallets: {$elemMatch: {address: snipeWalletAddress}}},
+            {
+                $set: {
+                    'snipeWallets.$.timeZoneStartTime': timeZoneStartTime,
+                    'snipeWallets.$.presaleStartTime': unixStartTime,
+                    'snipeWallets.$.state': "Snipe pending..."
+                }
+            })
+
+        await this.scheduleFactory.agenda.start()
+        const jobName = "snipePresale_" + snipeWalletAddress
+        await this.scheduleFactory.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
+            try{
+                console.log('here')
+                await this.snipePresale(buyerAddress, presaleAddress, tokenAddress = null, contributeAmount, gasPrice, gasLimit, snipeWalletAddress)
+                console.log('here2')
+                await this.dbFactory.snipeSchema.updateOne(
+                    {snipeWallets: {$elemMatch: {address: snipeWalletAddress}}},
+                    {
+                        $set: {
+                            'snipeWallets.$.sniped': true,
+                        }
+                    })
+                done()
+            }
+            catch(err){
+                console.log(err)
+            }
+        })
+
+        await this.scheduleFactory.agenda.schedule(timeZoneStartTime, jobName);
 
     }
 
-    async snipePresale(buyerAddress, presaleAddress, tokenAddress = null, contributeAmount, gasPrice, gasLimit){
-        buyerAddress = ethers.utils.getAddress(buyerAddress)
-        presaleAddress = ethers.utils.getAddress(presaleAddress)
-        tokenAddress = ethers.utils.getAddress(tokenAddress) // auto claim with this line in the future
+    async snipePresale(buyerAddress, presaleAddress, tokenAddress = null, contributeAmount, gasPrice, gasLimit, snipeWalletAddress){
 
-        const transferFundsToStorage = await this.createWalletForClientAndGetFunds(buyerAddress, contributeAmount, presaleAddress, tokenAddress)
+        const walletInBDD = await this.checkWallet(buyerAddress)
 
-
-
-        //const transaction = await this.swap.sendTransaction(buyAmount, gasPrice, gasLimit, presaleAddress)
+        if(walletInBDD !== false){
+            console.log('transfer')
+            //const transaction = await this.accountManager.transfer(contributeAmount, walletInBDD[0].buyerAddress, walletInBDD[0].paymentWallet.address)
+        }
+        const transaction = await this.swap.sendTransaction(contributeAmount, gasPrice, gasLimit, presaleAddress, false, null, snipeWalletAddress)
 
         console.log('acheté')
-        //return transaction
+        return transaction
 
     }
 
