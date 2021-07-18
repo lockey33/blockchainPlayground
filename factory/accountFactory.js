@@ -5,9 +5,11 @@ const require = createRequire(import.meta.url);
 const Tx = require('ethereumjs-tx').Transaction
 export default class AccountFactory {
 
-    constructor(config, contractManager) {
+    constructor(config, contractManager, helper, dbFactory) {
         this.config = config
         this.contractManager = contractManager
+        this.helper = helper
+        this.dbFactory = dbFactory
     }
 
     async createWallet(){
@@ -51,10 +53,9 @@ export default class AccountFactory {
         let transaction = new Tx(rawTransaction, {common})
         transaction.sign(privKey)
         const serializedTx = transaction.serialize().toString('hex')
-        //let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
+        let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
 
-        console.log(sendTransaction)
-        //return sendTransaction
+        return sendTransaction
 
     }
 
@@ -62,6 +63,23 @@ export default class AccountFactory {
     async getWalletBalance(wallet){
         let balance = await this.config.provider.getBalance(wallet)
         return balance
+    }
+
+    async setPremium(paymentAddress, buyerAddress, required) {
+        try{
+            const balance = await this.getWalletBalance(paymentAddress)
+            const readableBalance = await this.helper.readableValue(balance, 18)
+            console.log(readableBalance)
+            if(parseFloat(readableBalance) >= parseFloat(required)){
+                console.log('here', buyerAddress)
+                await this.dbFactory.snipeSchema.updateOne({"buyerAddress": buyerAddress}, {$set: {"premium": true}})
+                return "Premium ok"
+            }
+        }catch(err){
+            console.log(err)
+            return err
+        }
+
     }
 
     async getAccountBalance(){

@@ -7,6 +7,7 @@ const Schema = mongoose.Schema;
 let snipeSchema = Schema({
     id: String,
     buyerAddress: String,
+    premium: Boolean,
     truncBuyerAddress: String,
     paymentWallet: Object,
     snipeWallets: Array,

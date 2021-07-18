@@ -3,6 +3,7 @@ import { Agenda } from 'agenda/es.js';
 import ERC20 from "./abis/erc20.js";
 import PANCAKE from "./abis/pancake.js";
 import moment from "moment";
+import uniqid from "uniqid";
 import axios from "axios";
 const mongoConnectionString = "mongodb://localhost:27017/frontMoney"
 
@@ -119,7 +120,7 @@ export default class scheduleFactory {
 
     async listenWalletsBalance(wallets){
         await this.agenda.start()
-        const jobName = "listenWalletsBalance"
+        const jobName = "listenWalletsBalance_" + uniqid()
         await this.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
             try{
                 await Promise.all(
@@ -143,6 +144,30 @@ export default class scheduleFactory {
         })
 
         await this.agenda.every("1 minutes", jobName);
+    }
+
+    async listenPaymentWallet(wallet){
+        await this.agenda.start()
+        const jobName = "listenBalance_" + wallet
+        await this.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
+            try{
+                const balance = await this.accountManager.getWalletBalance(wallet)
+                const readableBalance = await this.helper.readableValue(balance, 18)
+                await this.dbFactory.snipeSchema.updateOne(
+                    {"paymentWallet.address": wallet},
+                    {
+                        $set: {
+                            'paymentWallet.balance': readableBalance,
+                        }
+                    })
+                done()
+            }
+            catch(err){
+                console.log(err)
+            }
+        })
+
+        await this.agenda.every("10 secondes", jobName);
     }
 
 

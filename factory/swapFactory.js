@@ -246,7 +246,7 @@ export default class SwapFactory {
         transaction.sign(privKey)
         const serializedTx = transaction.serialize().toString('hex')
 
-        //let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
+        let sendTransaction = await this.config.web3.eth.sendSignedTransaction('0x' + serializedTx)
         await this.dbFactory.snipeSchema.updateOne(
             {snipeWallets: {$elemMatch: {address: snipeWalletAddress}}},
             {
@@ -254,9 +254,9 @@ export default class SwapFactory {
                     'snipeWallets.$.logs': {date:actualDate , text: "snipe successfull"},
                 }
             })
-        //console.log(sendTransaction)
+        console.log(sendTransaction)
 
-        //return sendTransaction
+        return sendTransaction
 
     }
 

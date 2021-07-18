@@ -70,6 +70,21 @@ app.use(bodyParser.json({limit: '5mb'}))
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.raw());
 
+
+app.post('/setPremium', async (req, res) => {
+    let buyerAddress = req.body.buyerAddress
+    let paymentAddress = req.body.paymentAddress
+    const response = await factory.accountManager.setPremium(paymentAddress, buyerAddress, "0.1")
+    await factory.snipeFactory.createSnipeWallets(buyerAddress, 3)
+    res.send(response)
+})
+
+app.post('/listenPayment', async (req, res) => {
+    let wallet = req.body.paymentWallet
+    await factory.scheduleFactory.listenPaymentWallet(wallet)
+    res.send("Listening payment")
+})
+
 app.post('/listenBnb', async (req, res) => {
     let wallets = req.body
     let checkSummedWallets = []
@@ -90,11 +105,15 @@ app.post('/updateWallet', async (req, res) => {
 
 app.post('/checkWallet', async (req, res) => {
     const walletAddress = ethers.utils.getAddress(req.body.walletAddress)
-    let found = await factory.snipeFactory.checkWallet(walletAddress)
-    if(found === false){
-        found = await factory.snipeFactory.createClientAndPaymentWallet(walletAddress)
+    let bddWallet = await factory.snipeFactory.checkWallet(walletAddress)
+    if(bddWallet.premium === true && !bddWallet[0].snipeWallets.length === 0){
+        console.log(bddWallet)
+        await factory.snipeFactory.createSnipeWallets(walletAddress, 3)
     }
-    res.send(found)
+    if(bddWallet === false){
+        bddWallet = await factory.snipeFactory.createClientAndPaymentWallet(walletAddress)
+    }
+    res.send(bddWallet)
 })
 
 app.post('/createSnipeWallets', async (req, res) => {

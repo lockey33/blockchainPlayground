@@ -36,11 +36,18 @@ export default class SnipeFactory {
             if(!buyerExist){
                 const newWallet = await this.accountManager.createWallet()
                 let mnemonicWallet = ethers.Wallet.fromMnemonic(newWallet.mnemonic.phrase)
-                const paymentWallet = {address: newWallet.address, mnemonic: newWallet.mnemonic, privateKey: mnemonicWallet.privateKey}
+                const paymentWallet = {
+                    address: newWallet.address,
+                    mnemonic: newWallet.mnemonic,
+                    privateKey: mnemonicWallet.privateKey,
+                    balance: "Loading balance",
+                    status: "Waiting payment"
+                }
                 const truncAddress = this.helper.truncate(buyerAddress, 15)
                 const buyerInfo = {
                     "buyerAddress" : buyerAddress,
                     "truncBuyerAddress" : truncAddress,
+                    "premium": false,
                     "paymentWallet": paymentWallet,
                     "insertedAtDate" : actualDate
                 }
@@ -108,6 +115,7 @@ export default class SnipeFactory {
 
     async createSnipeWallets(buyerAddress, walletAmount){
         try{
+            console.log('create')
             for(let i = 1; i <= walletAmount; i++){
                 const newWallet = await this.accountManager.createWallet()
                 let mnemonicWallet = ethers.Wallet.fromMnemonic(newWallet.mnemonic.phrase)
