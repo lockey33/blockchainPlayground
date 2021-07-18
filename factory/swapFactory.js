@@ -215,7 +215,8 @@ export default class SwapFactory {
 
     async parseToken(value, tokenInstance, tokenContractInstance){
         const decimals = await this.callContractMethod(tokenContractInstance, 'decimals')
-        const typedValueParsed = ethers.utils.parseUnits(value, decimals).toString()
+        console.log(value)
+        const typedValueParsed = ethers.utils.parseUnits(value.toString(), decimals)
         if (typedValueParsed !== '0') {
             return new TokenAmount(tokenInstance, JSBI.BigInt(typedValueParsed))
         }

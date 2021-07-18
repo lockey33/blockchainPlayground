@@ -30,11 +30,11 @@ const mailOptions = {
 
 console.log("Token a sniper :", tokenToSnipe)
 let gasLimit = 1000000
-let targetIncrease = 20
+let targetIncrease = 50
 let buyValue = 0.02// BUY VALUE
 let buySlippage = 1000 // BUY SLIPPAGE
 let buyGas = 60 // BUY GAS
-
+let goOut = -1
 let sellValue = 100 //SELL VALUE
 let sellSlippage = 25 // SELL SLIPPAGE
 let sellGas = 20
@@ -53,7 +53,7 @@ const waitLiquidity = setInterval(async() => {
         clearInterval(waitLiquidity)
         try{
             console.log('achat en cours')
-            await listener.swapFactory.buyFast(WBNB, tokenToSnipe, buyValue, buySlippage, buyGas, gasLimit, true, estimateBuy)
+            //await listener.swapFactory.buyFast(WBNB, tokenToSnipe, buyValue, buySlippage, buyGas, gasLimit, true, estimateBuy)
             fs.writeFile(fileName, 'achat en cours', function (err) {
                 if (err) return console.log(err);
                 console.log('error logs');
@@ -66,7 +66,7 @@ const waitLiquidity = setInterval(async() => {
             });
             killForeverProcess()
         }
-        const increased = await listener.swapFactory.listenPriceOfCoin("sell", WBNB, tokenToSnipe, "Sniping", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true)
+        const increased = await listener.swapFactory.listenPriceOfCoin("sell", WBNB, tokenToSnipe, "Sniping", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true, goOut)
         await listener.swapFactory.swap("sell",tokenToSnipe, WBNB, sellValue, sellSlippage, sellGas, gasLimit, true)
         killForeverProcess()
 

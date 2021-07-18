@@ -3,21 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/accountFactory.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/contractFactory.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/dbFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/dbFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/globalFactory.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/helperFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/helperFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/listenerFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mongo.schemas/tokenSchema.js" beforeDir="false" afterPath="$PROJECT_DIR$/mongo.schemas/tokenSchema.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/refacto.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/global.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/projectMode/ganache/config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/accounts.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/projectMode/testnet/config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/sniper.js" beforeDir="false" afterPath="$PROJECT_DIR$/sniper.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
