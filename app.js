@@ -25,7 +25,6 @@ const factory =  new GlobalFactory("prod", init.account, init.blockchain);
 
 (async () => {
     await factory.init() // permet de charger les contrats et autres
-
 /*    await factory.scheduleFactory.agenda.on("start", (job) => {
         //console.log("Job %s starting", job.attrs.name);
     });

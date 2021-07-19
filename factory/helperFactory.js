@@ -33,14 +33,14 @@ export default class HelperFactory {
     }
 
     async parseCurrency(value){
-        const typedValueParsed = ethers.utils.parseUnits(value, 18).toString()
+        const typedValueParsed = ethers.utils.parseUnits(value.toString(), 18)
         if (typedValueParsed !== '0') {
             return new CurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
         }
     }
 
     async parseToken(value, tokenInstance, tokenContractInstance, decimals){
-        const typedValueParsed = ethers.utils.parseUnits(value, decimals).toString()
+        const typedValueParsed = ethers.utils.parseUnits(value.toString(), decimals)
         if (typedValueParsed !== '0') {
             return new TokenAmount(tokenInstance, JSBI.BigInt(typedValueParsed))
         }

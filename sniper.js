@@ -1,5 +1,5 @@
 import GlobalFactory from "./factory/globalFactory.js"
-import myAccounts from "./static/projectMode/prod/accounts.js";
+import myAccounts from "./static/projectMode/prod/bsc/accounts.js";
 import ethers from "ethers";
 import PANCAKE from "./factory/abis/pancake.js";
 import { createRequire } from 'module';
@@ -8,88 +8,44 @@ const resolve = require('path').resolve
 const nodemailer = require('nodemailer');
 const balanceTokenIn = ethers.utils.parseUnits("1", "ether")
 
-const factory =  new GlobalFactory("prod", myAccounts.cash)
-const swapFactory = factory.swap
-
-const WBNB = factory.config.WBNB
+const factory =  new GlobalFactory("prod", "cash")
+await factory.init()
 let params = process.argv.slice(2)
 const { exec } = require("child_process");
 
 const tokenToSnipe = await ethers.utils.getAddress(params[0])
-const fs = require('fs')
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'laurent.ju974@gmail.com',
-        pass: 'pomme974'
-    }
-});
-const mailOptions = {
-    from: 'laurent.ju974@gmail.com',
-    to: 'lockeyproduction@gmail.com',
-    subject: 'Sniper',
-    text: tokenToSnipe
-};
 
 console.log("Token a sniper :", tokenToSnipe)
-let gasLimit = 1000000
-let targetIncrease = 20
-let buyValue = 0.02// BUY VALUE
-let buySlippage = 1000 // BUY SLIPPAGE
-let buyGas = 60 // BUY GAS
 
-let sellValue = 100 //SELL VALUE
-let sellSlippage = 25 // SELL SLIPPAGE
-let sellGas = 20
+const snipeObject= {
+     tokenToSnipe: tokenToSnipe,
+     gasLimit : 1000000,
+     targetIncrease : 50,
+     buyValue : 0.05,
+     buySlippage : 30,
+     buyGas : 15,
+     estimateBuy : false,
 
-let estimateBuy = false
-
-let tryAmount = 0
-
-let fileName = tokenToSnipe + ".txt"
-
-const waitLiquidity = setInterval(async() => {
-    tryAmount++
-    let liquidity = await factory.contractManager.checkLiquidity( balanceTokenIn, WBNB, tokenToSnipe)
-    console.log("Nombre d'itérations :", tryAmount, liquidity)
-    if(liquidity !== false){
-        clearInterval(waitLiquidity)
-        try{
-            console.log('achat en cours')
-            await factory.swap.buyFast(WBNB, tokenToSnipe, buyValue, buySlippage, buyGas, gasLimit, true, estimateBuy)
-            fs.writeFile(fileName, 'achat en cours', function (err) {
-                if (err) return console.log(err);
-                console.log('error logs');
-            });
-        }catch(buyErr){
-            console.log('erreur achat', buyErr)
-            fs.writeFile(fileName, buyErr.toString(), function (err) {
-                if (err) return console.log(err);
-                console.log('error logs');
-            });
-            killForeverProcess()
-        }
-        const increased = await factory.swap.listenPriceOfCoin("sell", WBNB, tokenToSnipe, "Sniping", targetIncrease, sellValue, sellSlippage, sellGas, gasLimit, true)
-        await swapFactory.swap("sell",tokenToSnipe, WBNB, sellValue, sellSlippage, sellGas, gasLimit, true)
-        killForeverProcess()
-
-    }
-
-},3000)
-
-function killForeverProcess(){
-    const cmd = "forever stop " + process.pid
-    exec(cmd, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-
-    });
+     sellValue : 100,
+     sellSlippage : 25,
+     sellGas : 20,
+     goOut: -20
 }
+
+
+const snipeObjectTest = {
+    tokenToSnipe: tokenToSnipe,
+    gasLimit : 1000000,
+    targetIncrease : 50,
+    buyValue : 0.001,
+    buySlippage : 1000,
+    buyGas : 5,
+    estimateBuy : false,
+
+    sellValue : 100,
+    sellSlippage : 25,
+    sellGas : 20,
+    goOut: -20
+}
+
+await factory.scheduleFactory.snipeFairLaunch(snipeObject)

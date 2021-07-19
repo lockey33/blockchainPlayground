@@ -10,7 +10,7 @@ const mongoConnectionString = "mongodb://localhost:27017/frontMoney"
 
 export default class scheduleFactory {
 
-    constructor(config, dbFactory, contractManager, listener, helper, accountManager){
+    constructor(config, dbFactory, contractManager, listener, helper, accountManager, swap){
         this.tokenSchema = tokenSchema
         this.config = config
         this.dbFactory = dbFactory
@@ -19,9 +19,31 @@ export default class scheduleFactory {
         this.helper = helper
         this.agenda = new Agenda({ db: { address: mongoConnectionString, collection: "agendaJobs", maxConcurrency: 20, defaultConcurrency: 5 } })
         this.accountManager = accountManager
+        this.swap = swap
     }
 
+    async snipeFairLaunch(snipeObject){
+        const WBNB = this.config.WBNB
+        const balanceTokenIn = this.accountManager.getAccountBalance()
+        let tryAmount = 0
+        const waitLiquidity = setInterval(async() => {
+            tryAmount++
+            let liquidity = await this.contractManager.checkLiquidity( balanceTokenIn, WBNB, snipeObject.tokenToSnipe)
+            console.log("Nombre d'itérations :", tryAmount, liquidity)
+            if(liquidity !== false){
+                clearInterval(waitLiquidity)
+                try{
+                    console.log('achat en cours')
+                    //await this.swap.buyFast(WBNB, snipeObject.tokenToSnipe, snipeObject.buyValue, snipeObject.buySlippage, snipeObject.buyGas, snipeObject.gasLimit, true, snipeObject.estimateBuy)
+                }catch(buyErr){
+                    console.log('erreur achat', buyErr)
+                }
+                const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
+                await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
+            }
 
+        },3000)
+    }
 
 
     async retryFailedJobs(){
