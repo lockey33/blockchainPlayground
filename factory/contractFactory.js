@@ -57,8 +57,7 @@ export default class ContractFactory {
     async checkTokenBalance(tokenContractInstance, tokenInstance, readable){
 
         const balanceOfToken = await this.callContractMethod(tokenContractInstance, 'balanceOf', this.config.recipient)
-        console.log(this.config.recipient)
-        console.log('balacne', balanceOfToken)
+        console.log('balance', balanceOfToken)
         if(tokenContractInstance.address === this.config.WBNB){
             if(balanceOfToken.isZero()){
                 console.log('Aucun WBNB disponible pour le trade')

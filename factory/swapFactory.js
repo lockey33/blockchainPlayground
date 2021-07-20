@@ -24,7 +24,6 @@ export default class SwapFactory {
     async fetchPair(inputTokenInstance, outputTokenInstance){
 
         let pair = await Fetcher.fetchPairData(inputTokenInstance, outputTokenInstance, this.config.provider)
-        console.log(pair)
         const route = new Route([pair], WETHs[inputTokenInstance.chainId])
 
         let pairData = {
@@ -46,18 +45,37 @@ export default class SwapFactory {
         }
     }
 
-    async buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy = false){
+    async buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy = false, tryAmount = 0){
         const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
         const tokenOutDecimals = await this.contractManager.callContractMethod(tokenOutContractInstance, "decimals")
 
         const tokenInInstance = new Token(this.config.chain, tokenIn, 18)
         const tokenOutInstance = new Token(this.config.chain, tokenOut, tokenOutDecimals)
-        const pairData = await this.fetchPair(tokenInInstance, tokenOutInstance)
+        let pairData = null
+        try{
+            pairData = await this.fetchPair(tokenInInstance, tokenOutInstance)
+        }catch(err){
+            console.log('no liquidity for the moment, try number :', tryAmount)
+            tryAmount++
+            return this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy = false, tryAmount)
+        }
         const pair = pairData.pair
         const route = new Route([pair], tokenInInstance)
-
+        let trade = null
         const typedValueParsed = ethers.utils.parseUnits(value.toString(), 18)
-        const trade = new Trade(route, new TokenAmount(tokenInInstance, typedValueParsed), TradeType.EXACT_INPUT)
+
+        try{
+            trade = new Trade(route, new TokenAmount(tokenInInstance, typedValueParsed), TradeType.EXACT_INPUT)
+        }catch(err){
+            if(err.isInsufficientReservesError === true){
+                    console.log('no liquidity for the moment, try number :', tryAmount)
+                    tryAmount++
+                    return this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy = false, tryAmount)
+            }else{
+                console.log('unknown error, stopping snipe')
+                return err
+            }
+        }
         const tradeOptions = await this.getTradeOptions(allowedSlippage, feeOnTransfer)
 
         gasPrice = ethers.utils.parseUnits(gasPrice.toString(), 'gwei')
@@ -77,7 +95,8 @@ export default class SwapFactory {
             } catch (err) {
                 console.log("gas estimation error, retry now")
                 console.log(err)
-                return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy)
+                tryAmount++
+                return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy, tryAmount)
             }
         }else{
             const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)

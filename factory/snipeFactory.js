@@ -164,12 +164,14 @@ export default class SnipeFactory {
         const jobName = "snipePresale_" + snipeWalletAddress
         await this.scheduleFactory.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
             try{
-                console.log('here')
+                const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
                 await this.snipePresale(buyerAddress, presaleAddress, tokenAddress = null, contributeAmount, gasPrice, gasLimit, snipeWalletAddress)
-                console.log('here2')
                 await this.dbFactory.snipeSchema.updateOne(
                     {snipeWallets: {$elemMatch: {address: snipeWalletAddress}}},
                     {
+                        $push:{
+                            'snipeWallets.logs': {date: actualDate, text: "Presale sniped, you will be able to claim your tokens with this sniper wallet when the presale is finished"},
+                        },
                         $set: {
                             'snipeWallets.$.sniped': true,
                         }
@@ -177,6 +179,15 @@ export default class SnipeFactory {
                 done()
             }
             catch(err){
+                const errorText = "An error has occured :" + err.toString()
+                await this.dbFactory.snipeSchema.updateOne(
+                    {snipeWallets: {$elemMatch: {address: snipeWalletAddress}}},
+                    {
+                        $push:{
+                            'snipeWallets.logs': {date: actualDate, text: errorText},
+                        },
+
+                    })
                 console.log(err)
             }
         })

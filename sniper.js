@@ -17,18 +17,18 @@ const tokenToSnipe = await ethers.utils.getAddress(params[0])
 
 console.log("Token a sniper :", tokenToSnipe)
 
-const snipeObject= {
+const snipeObject = {
      tokenToSnipe: tokenToSnipe,
      gasLimit : 1000000,
-     targetIncrease : 50,
-     buyValue : 0.05,
-     buySlippage : 30,
-     buyGas : 15,
+     targetIncrease : 100,
+     buyValue : 0.1,
+     buySlippage : 1000,
+     buyGas : 50,
      estimateBuy : false,
 
      sellValue : 100,
-     sellSlippage : 25,
-     sellGas : 20,
+     sellSlippage : 35,
+     sellGas : 15,
      goOut: -20
 }
 

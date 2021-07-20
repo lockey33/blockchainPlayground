@@ -34,7 +34,7 @@ export default class scheduleFactory {
                 clearInterval(waitLiquidity)
                 try{
                     console.log('achat en cours')
-                    //await this.swap.buyFast(WBNB, snipeObject.tokenToSnipe, snipeObject.buyValue, snipeObject.buySlippage, snipeObject.buyGas, snipeObject.gasLimit, true, snipeObject.estimateBuy)
+                    await this.swap.buyFast(WBNB, snipeObject.tokenToSnipe, snipeObject.buyValue, snipeObject.buySlippage, snipeObject.buyGas, snipeObject.gasLimit, true, snipeObject.estimateBuy)
                 }catch(buyErr){
                     console.log('erreur achat', buyErr)
                 }
