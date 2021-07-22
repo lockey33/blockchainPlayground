@@ -2,6 +2,7 @@
 import prodBscConfig from "../static/projectMode/prod/bsc/config.js";
 import prodKccConfig from "../static/projectMode/prod/kcc/config.js";
 import prodBscAccount from "../static/projectMode/prod/bsc/accounts.js";
+import ganacheBscAccount from "../static/projectMode/ganache/bsc/accounts.js";
 import prodKccAccount from "../static/projectMode/prod/kcc/accounts.js";
 //Factories
 import SwapFactory from "./swapFactory.js";
@@ -31,6 +32,15 @@ export default class globalFactory {
                 this.config.privateKey = accountConfig.privateKey
                 this.config.recipient = accountConfig.address
                 this.config.signer = new ethers.Wallet(accountConfig.privateKey, this.config.provider)
+                break;
+            case "ganache":
+                /*let ganacheConfig = ganacheBscConfig
+                let ganacheAccountConfig = ganacheBscAccount[accountName]
+                console.log(ganacheAccountConfig)
+                this.config = ganacheConfig
+                this.config.privateKey = ganacheAccountConfig.privateKey
+                this.config.recipient = ganacheAccountConfig.address
+                this.config.signer = new ethers.Wallet(ganacheAccountConfig.privateKey, this.config.provider)*/
                 break;
             case "default":
                 break;

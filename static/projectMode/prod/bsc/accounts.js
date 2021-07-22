@@ -9,7 +9,7 @@ export default
         "address": "0x3Ce64e0e548b85E86e6786613FF97Dbb2C23481C",
         "privateKey": "6efa19b7534095c84baaf3b017810c37fdd99cb44c4f07c5bf4ef2aa4c474ab5",
     },
-    "account2" :{
+    "stark" :{
         "address": "0xd0B52f0BBeE73A21A53BBB2A4045259F4069D54D",
         "privateKey" : "3b1f27ab9adf7c9e88cacdc86fbd017e46305811bec60854b81aaebaf8199ff5",
     },

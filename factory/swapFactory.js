@@ -83,22 +83,26 @@ export default class SwapFactory {
         const swap = Router.swapCallParameters(trade, tradeOptions, true, false)
         const transactionOptions = {gasPrice: gasPrice, gasLimit: gasLimit}
         transactionOptions.value = ethers.utils.parseUnits(value.toString(), 'ether')
-        console.log(swap)
+        console.log('buyfast',swap)
+        console.log(transactionOptions)
         //this.approveIfNeeded(tokenOutContractInstance, ethers.utils.parseUnits(this.approveMaxValue), 1000000, gasPrice)
         let confirm = null
         if(estimateBuy) {
             try {
-                let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
+                //let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
+                let gasCost = (gasPrice * gasLimit) * 10^-9
+                console.log("gas cost", gasCost)
+                let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.callStatic[swap.methodName](swap.args[0], swap.args[1], swap.args[2], swap.args[3], transactionOptions)
                 console.log(estimateGas)
-                const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
-                confirm = await result.wait()
+                //const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
+                //confirm = await result.wait()
             } catch (err) {
-                console.log("gas estimation error, retry now")
-                console.log(err)
+                console.log("gas estimation error, retry now", err)
                 tryAmount++
                 return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy, tryAmount)
             }
         }else{
+            console.log('no estimation')
             const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
             confirm = await result.wait()
         }
