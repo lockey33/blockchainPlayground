@@ -21,13 +21,13 @@ const snipeObject = {
      tokenToSnipe: tokenToSnipe,
      gasLimit : 1000000,
      targetIncrease : 100,
-     buyValue : 0.1,
+     buyValue : 0.02,
      buySlippage : 1000,
-     buyGas : 50,
+     buyGas : 35,
      estimateBuy : false,
 
      sellValue : 100,
-     sellSlippage : 35,
+     sellSlippage : 50,
      sellGas : 15,
      goOut: -20
 }
