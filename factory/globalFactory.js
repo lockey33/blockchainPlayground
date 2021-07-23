@@ -1,7 +1,9 @@
 //Config
 import prodBscConfig from "../static/projectMode/prod/bsc/config.js";
+import testBscConfig from "../static/projectMode/testnet/bsc/config.js";
 import prodKccConfig from "../static/projectMode/prod/kcc/config.js";
 import prodBscAccount from "../static/projectMode/prod/bsc/accounts.js";
+import testBscAccount from "../static/projectMode/testnet/bsc/accounts.js";
 import prodKccAccount from "../static/projectMode/prod/kcc/accounts.js";
 //Factories
 import SwapFactory from "./swapFactory.js";
@@ -32,7 +34,14 @@ export default class globalFactory {
                 this.config.recipient = accountConfig.address
                 this.config.signer = new ethers.Wallet(accountConfig.privateKey, this.config.provider)
                 break;
-            case "default":
+            case "testnet":
+                let testConfig = testBscConfig
+                let testAccountConfig = testBscAccount[accountName]
+
+                this.config = testConfig
+                this.config.privateKey = testAccountConfig.privateKey
+                this.config.recipient = testAccountConfig.address
+                this.config.signer = new ethers.Wallet(testAccountConfig.privateKey, this.config.provider)
                 break;
         }
         this.helper = new HelperFactory(this.config)

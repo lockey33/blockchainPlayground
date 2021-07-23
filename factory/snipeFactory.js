@@ -115,31 +115,34 @@ export default class SnipeFactory {
 
     async createSnipeWallets(buyerAddress, walletAmount){
         try{
-            console.log('create')
-            for(let i = 1; i <= walletAmount; i++){
-                const newWallet = await this.accountManager.createWallet()
-                let mnemonicWallet = ethers.Wallet.fromMnemonic(newWallet.mnemonic.phrase)
-                const actualDate = moment().unix()
-                const truncAddress = this.helper.truncate(newWallet.address, 15)
+            let buyerAccount = await this.dbFactory.getSnipeFiltered({"buyerAddress": buyerAddress})
+            if(buyerAccount.snipeWallets.length < 3){
+                console.log('create')
+                for(let i = 1; i <= walletAmount; i++){
+                    const newWallet = await this.accountManager.createWallet()
+                    let mnemonicWallet = ethers.Wallet.fromMnemonic(newWallet.mnemonic.phrase)
+                    const actualDate = moment().unix()
+                    const truncAddress = this.helper.truncate(newWallet.address, 15)
 
-                const snipeWallet = {
-                    address: newWallet.address,
-                    truncAddress: truncAddress,
-                    mnemonic: newWallet.mnemonic,
-                    privateKey: mnemonicWallet.privateKey,
-                    state: "available",
-                    logs: [{date:actualDate , text: "Wallet created, waiting for snipe"}],
-                    showPrivateKey: false,
-                    showLogs: false
+                    const snipeWallet = {
+                        address: newWallet.address,
+                        truncAddress: truncAddress,
+                        mnemonic: newWallet.mnemonic,
+                        privateKey: mnemonicWallet.privateKey,
+                        state: "available",
+                        logs: [{date:actualDate , text: "Wallet created, waiting for snipe"}],
+                        showPrivateKey: false,
+                        showLogs: false
+                    }
+
+                    await this.dbFactory.snipeSchema.updateOne(
+                        {"buyerAddress": buyerAddress},
+                        {
+                            $push: {
+                                snipeWallets: snipeWallet,
+                            }
+                        })
                 }
-
-                await this.dbFactory.snipeSchema.updateOne(
-                    {"buyerAddress": buyerAddress},
-                    {
-                        $push: {
-                            snipeWallets: snipeWallet,
-                        }
-                    })
             }
             return true
         }catch(err){

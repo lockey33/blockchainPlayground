@@ -12,6 +12,11 @@ export default class dbFactory {
         this.snipeSchema = snipeSchema
     }
 
+    async getUserFromPaymentWallet(address){
+        const paymentWallet = await snipeSchema.findOne({"paymentWallet.address": address})
+        return paymentWallet
+    }
+
     async getAllSnipe(){
         let allSnipe = await snipeSchema.find()
         return allSnipe

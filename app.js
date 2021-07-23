@@ -20,7 +20,7 @@ const io = require('socket.io')(server, {
         origin: '*',
     }
 });
-const factory =  new GlobalFactory("prod", init.account, init.blockchain);
+const factory =  new GlobalFactory("testnet", init.account, init.blockchain);
 
 
 (async () => {
@@ -73,7 +73,7 @@ app.use(bodyParser.raw());
 app.post('/setPremium', async (req, res) => {
     let buyerAddress = req.body.buyerAddress
     let paymentAddress = req.body.paymentAddress
-    const response = await factory.accountManager.setPremium(paymentAddress, buyerAddress, "0.1")
+    const response = await factory.accountManager.setPremium(paymentAddress, buyerAddress, "0.5")
     await factory.snipeFactory.createSnipeWallets(buyerAddress, 3)
     res.send(response)
 })

@@ -19,7 +19,7 @@ console.log("Token a sniper :", tokenToSnipe)
 
 const snipeObject = {
      tokenToSnipe: tokenToSnipe,
-     gasLimit : 1000000,
+     gasLimit : 2000000,
      targetIncrease : 100,
      buyValue : 0.02,
      buySlippage : 1000,
