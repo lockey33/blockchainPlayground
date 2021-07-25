@@ -100,6 +100,7 @@ export default class SwapFactory {
             }
         }else{
             const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
+            console.log(result)
             confirm = await result.wait()
         }
 

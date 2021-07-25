@@ -24,7 +24,7 @@ export default class scheduleFactory {
 
     async snipeFairLaunch(snipeObject){
         const WBNB = this.config.WBNB
-        const balanceTokenIn = this.accountManager.getAccountBalance()
+        const balanceTokenIn = await this.accountManager.getAccountBalance()
         let tryAmount = 0
         const waitLiquidity = setInterval(async() => {
             tryAmount++

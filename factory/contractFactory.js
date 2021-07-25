@@ -173,7 +173,7 @@ export default class ContractFactory {
             }
         }catch(err){
             console.log('error', methodName, options)
-            //console.log(err)
+            console.log(err)
         }
 
 
