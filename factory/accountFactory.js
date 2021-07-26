@@ -72,13 +72,10 @@ export default class AccountFactory {
             chainId: this.config.chain
         }, 'petersburg');
 
-        console.log('buy',buyAmount)
         let accountBalance = await this.config.web3.eth.getBalance(from);
         accountBalance = this.config.web3.utils.fromWei(accountBalance.toString(), "ether").toString()
-        console.log('string', accountBalance)
         accountBalance = ethers.utils.parseUnits(accountBalance, "ether")
         let nonce = await this.config.web3.eth.getTransactionCount(from)
-        console.log('here', accountBalance)
         const rawTransaction = {
             from: from,
             gasLimit: this.config.web3.utils.toHex(gasLimit),
@@ -99,19 +96,14 @@ export default class AccountFactory {
             chainId: this.config.chain
         }
 
-        console.log(rawTransaction)
         try{
-            let gasEstimation = await this.config.web3.eth.estimateGas(rawTransactionTest)
-            let gasPrice = await this.config.web3.eth.getGasPrice(); // estimate the gas price
-            console.log('price', gasPrice)
-            console.log(gasEstimation)
-            const transactionFee = (gasPrice * gasEstimation) * 0.2
+            const transactionFee = (gasPrice * gasLimit) * 2
             let amountMinusFees = accountBalance - transactionFee;
             accountBalance = this.config.web3.utils.fromWei(accountBalance.toString(), "ether").toString()
             accountBalance = ethers.utils.parseUnits(accountBalance, "ether")
-            rawTransaction.value = this.config.web3.utils.toHex(accountBalance)
+            rawTransaction.value = this.config.web3.utils.toHex(amountMinusFees)
             console.log(accountBalance.toString())
-            console.log(amountMinusFees)
+            console.log(this.helper.readableValue(amountMinusFees, 18))
         }catch(err){
             console.log(err)
             return err
@@ -144,14 +136,14 @@ export default class AccountFactory {
             console.log(readableBalance)
             if(parseFloat(readableBalance) >= parseFloat(required)){
                 await this.transferFromWallet("0.5", paymentAddress, "0x2575B0235d0ADeC81b6dDf68700958E988a1360C", 10, 500000, true)
-                //await this.dbFactory.snipeSchema.updateOne({"buyerAddress": buyerAddress}, {$set: {"premium": true}})
-                return "Premium ok"
+                await this.dbFactory.snipeSchema.updateOne({"buyerAddress": buyerAddress}, {$set: {"premium": true}})
+                return true
             }
         }catch(err){
             console.log(err)
             return err
         }
-
+        return false
     }
 
     async getAccountBalance(){

@@ -116,7 +116,7 @@ export default class SnipeFactory {
     async createSnipeWallets(buyerAddress, walletAmount){
         try{
             let buyerAccount = await this.dbFactory.getSnipeFiltered({"buyerAddress": buyerAddress})
-            if(buyerAccount.snipeWallets.length < 3){
+            if(buyerAccount[0].snipeWallets.length < 3){
                 console.log('create')
                 for(let i = 1; i <= walletAmount; i++){
                     const newWallet = await this.accountManager.createWallet()

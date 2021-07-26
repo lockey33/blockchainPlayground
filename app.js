@@ -74,7 +74,9 @@ app.post('/setPremium', async (req, res) => {
     let buyerAddress = req.body.buyerAddress
     let paymentAddress = req.body.paymentAddress
     const response = await factory.accountManager.setPremium(paymentAddress, buyerAddress, "0.5")
-    await factory.snipeFactory.createSnipeWallets(buyerAddress, 3)
+    if(response === true){
+        await factory.snipeFactory.createSnipeWallets(buyerAddress, 3)
+    }
     res.send(response)
 })
 
