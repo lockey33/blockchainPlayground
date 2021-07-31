@@ -88,20 +88,42 @@ export default class SwapFactory {
         let confirm = null
         if(estimateBuy) {
             try {
-                let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
-                console.log(estimateGas)
-                const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
-                confirm = await result.wait()
+                let rawData = ""
+                swap.args.map((data) => {
+
+                        rawData += data
+                })
+                console.log(rawData)
+                rawData = rawData.replaceAll(",", "")
+                //let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
+                let buyAmount = ethers.utils.parseUnits(value.toString(), "ether")
+                let test = {
+                    from : "0x9c4b9a2874de56ccf90027f1b50cee7f3c5fd9ca",
+                    to: "0x10ed43c718714eb63d5aa57b78b54704e256024e",
+                    nonce: this.config.web3.utils.toHex(this.config.web3.eth.getTransactionCount("0x9c4b9a2874de56ccf90027f1b50cee7f3c5fd9ca")),
+                    gasLimit: this.config.web3.utils.toHex(gasLimit),
+                    gasPrice: this.config.web3.utils.toHex(gasPrice),
+                    value: this.config.web3.utils.toHex(buyAmount),
+                    chainId: 56,
+                    data: rawData
+                }
+
+                console.log(test)
+
+                let simulateTransaction = await this.config.web3.eth.call(test)
+                console.log(simulateTransaction)
+                //const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
+                //confirm = await result.wait()
             } catch (err) {
                 console.log("gas estimation error, retry now")
                 console.log(err)
                 tryAmount++
-                return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy, tryAmount)
+                //return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy, tryAmount)
             }
         }else{
-            const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
+           // const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
             console.log(result)
-            confirm = await result.wait()
+            //confirm = await result.wait()
         }
 
         console.log('acheté')

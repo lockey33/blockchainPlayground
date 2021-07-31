@@ -19,17 +19,17 @@ console.log("Token a sniper :", tokenToSnipe)
 
 const snipeObject = {
      tokenToSnipe: tokenToSnipe,
-     gasLimit : 800000,
-     targetIncrease : 200,
-     buyValue : 0.02,
+     gasLimit : 1000000,
+     targetIncrease : 300,
+     buyValue : 0.01,
      buySlippage : 2000,
-     buyGas : 5
-    ,
-     estimateBuy : false,
+     buyGas : 10,
+
+     estimateBuy : true,
 
      sellValue : 100,
      sellSlippage : 50,
-     sellGas : 15,
+     sellGas : 10,
      goOut: -20
 }
 
@@ -37,15 +37,15 @@ const snipeObject = {
 const snipeObjectTest = {
     tokenToSnipe: tokenToSnipe,
     gasLimit : 1000000,
-    targetIncrease : 50,
-    buyValue : 0.001,
+    targetIncrease : 1000,
+    buyValue : 0.01,
     buySlippage : 1000,
     buyGas : 5,
     estimateBuy : false,
 
     sellValue : 100,
-    sellSlippage : 25,
-    sellGas : 20,
+    sellSlippage : 30,
+    sellGas : 5,
     goOut: -20
 }
 

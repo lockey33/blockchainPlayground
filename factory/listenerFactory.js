@@ -198,6 +198,7 @@ export default class ListenerFactory {
     async parseTransactionData(transaction, tx, subscription, params){
         const fnDecoder = new txDecoder.FunctionDecoder(PANCAKE);
         const result = fnDecoder.decodeFn(transaction.input);
+        console.log(transaction)
         const signature = result['signature']
         const signatureHash = result['sighash']
         if(signature.includes("swapExactETHForTokens")){
