@@ -86,6 +86,16 @@ export default class HelperFactory {
         return increase
     }
 
+    calculateIncreaseReversed(newAmount, originalAmount){
+        //console.log(originalAmount + '-' + newAmount)
+        let increase = originalAmount - newAmount   // 100 - 70 = 30
+        //console.log(newAmount , originalAmount)
+        increase = increase / originalAmount  //  30/ 70
+        increase = increase * 100
+        increase = Math.round(increase)
+        return increase
+    }
+
     async checkSum(address){
         return ethers.utils.getAddress(address)
     }

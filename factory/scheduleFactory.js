@@ -45,6 +45,12 @@ export default class scheduleFactory {
         },3000)
     }
 
+    async getProfitOnToken(params){
+
+        const watcher = await this.swap.watchTokenPrice(params.tokenToWatch, params)
+
+    }
+
 
     async retryFailedJobs(){
         const failedJobs = await this.agenda.jobs({'failReason': {$exists: true}})

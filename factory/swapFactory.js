@@ -8,7 +8,9 @@ import moment from "moment";
 const require = createRequire(import.meta.url);
 const Tx = require('ethereumjs-tx').Transaction
 const BIPS_BASE = JSBI.BigInt(100)
-
+const fs = require('fs')
+const path = require('path');
+const appDir = path.resolve("./")
 
 export default class SwapFactory {
 
@@ -293,6 +295,65 @@ export default class SwapFactory {
 
         return sendTransaction
 
+    }
+
+    async watchTokenPrice(tokenToWatch, params){
+
+        const increaseParams = params.increase
+        const decreaseParams = params.decrease
+
+        const tokenToWatchContractInstance =  await this.contractManager.getFreeContractInstance(params.tokenToWatch, ERC20)
+        const BNBContractInstance =  await this.contractManager.getFreeContractInstance(this.config.WBNB, ERC20)
+        const tokenToWatchDecimals = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "decimals")
+        const BNBDecimals = await this.contractManager.callContractMethod(BNBContractInstance, "decimals")
+
+        let tokenBalance = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "balanceOf")
+        console.log(tokenBalance)
+        console.log(this.helper.readableValue(tokenBalance.toString(), tokenToWatchDecimals))
+        let amounts = await this.contractManager.checkLiquidity( tokenBalance, params.tokenToWatch, this.config.WBNB)
+        let initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenToWatchDecimals)
+        let initialAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
+
+        console.log('initialAmountIn :',initialAmountIn)
+        console.log('initialAmountOut :',initialAmountOut)
+        const logFile = appDir + '/' + tokenToWatch + '.txt'
+
+        const watchPrice = setInterval(async() => {
+            try {
+                let amounts = await this.contractManager.checkLiquidity(tokenBalance, tokenToWatch, this.config.WBNB)
+                let actualAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
+                let pourcentageFluctuation = this.helper.calculateIncreaseReversed(initialAmountOut, actualAmountOut)
+                const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
+
+                console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB')
+
+                if(pourcentageFluctuation >= 2){
+                    const text = "Le token a augmenté de " + pourcentageFluctuation+ " %" + actualDate
+                    console.log(text)
+                    fs.writeFile(logFile, text, err => {
+                        if (err) {
+                            console.error(err)
+                            return
+                        }
+                    })
+                }
+
+                if(pourcentageFluctuation <= -2){
+                    const text = "Le token a diminué de 2% " + pourcentageFluctuation+ " % " + actualDate
+                    console.log(text)
+                    console.log(logFile)
+                    fs.writeFile(logFile, text, err => {
+                        if (err) {
+                            console.error(err)
+                            return
+                        }
+                    })
+                }
+
+            }catch(err){
+                console.log(err)
+            }
+        }, 3000)
     }
 
     async listenPriceOfCoin(typeOfListen,tokenIn, tokenOut, tokenOutName, targetIncrease, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut = false){

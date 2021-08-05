@@ -2,10 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/biswap.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/helperFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/helperFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/scheduleFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/scheduleFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sniper.js" beforeDir="false" afterPath="$PROJECT_DIR$/sniper.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,16 +38,16 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/factory" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="ts.external.directory.path" value="$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/factory" />
       <recent name="$PROJECT_DIR$/mongo.schemas" />
-      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/static/projectMode/prod/kcc" />
       <recent name="$PROJECT_DIR$/abis" />
     </key>

@@ -5,7 +5,7 @@ import moment from "moment";
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const resolve = require('path').resolve
-
+global.__basedir = __dirname;
 
 const express = require('express')
 const app = express()
