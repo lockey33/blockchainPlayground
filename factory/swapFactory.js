@@ -326,7 +326,7 @@ export default class SwapFactory {
                 let pourcentageFluctuation = this.helper.calculateIncreaseReversed(initialAmountOut, actualAmountOut)
                 const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
 
-                console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB')
+                console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB', actualDate)
 
                 if(pourcentageFluctuation >= 10){
                     const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
@@ -345,7 +345,7 @@ export default class SwapFactory {
             }catch(err){
                 console.log(err)
             }
-        }, 3000)
+        }, 1000)
     }
 
     async listenPriceOfCoin(typeOfListen,tokenIn, tokenOut, tokenOutName, targetIncrease, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut = false){
