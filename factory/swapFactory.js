@@ -299,8 +299,8 @@ export default class SwapFactory {
 
     async watchTokenPrice(tokenToWatch, params){
 
-        const increaseParams = params.increase
-        const decreaseParams = params.decrease
+        const buyParams = params.buy
+        const sellParams = params.sell
 
         const tokenToWatchContractInstance =  await this.contractManager.getFreeContractInstance(params.tokenToWatch, ERC20)
         const BNBContractInstance =  await this.contractManager.getFreeContractInstance(this.config.WBNB, ERC20)
@@ -328,11 +328,12 @@ export default class SwapFactory {
 
                 console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB')
 
-                if(pourcentageFluctuation === 0){
+                if(pourcentageFluctuation >= 10){
                     const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
                     console.log(text)
                     stream.write(text + "\n");
-
+                    clearInterval(watchPrice)
+                    await this.swap("sell",params.tokenToWatch, this.config.WBNB, sellParams.sellValue, sellParams.sellSlippage, sellParams.sellGas, params.gasLimit, true)
                 }
 
                 if(pourcentageFluctuation <= -2){
