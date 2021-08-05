@@ -330,7 +330,7 @@ export default class SwapFactory {
                 if(pourcentageFluctuation >= 2){
                     const text = "Le token a augmenté de " + pourcentageFluctuation+ " %" + actualDate
                     console.log(text)
-                    fs.writeFile(logFile, text, err => {
+                    fs.appendFile(logFile, text, err => {
                         if (err) {
                             console.error(err)
                             return
@@ -342,7 +342,7 @@ export default class SwapFactory {
                     const text = "Le token a diminué de 2% " + pourcentageFluctuation+ " % " + actualDate
                     console.log(text)
                     console.log(logFile)
-                    fs.writeFile(logFile, text, err => {
+                    fs.appendFile(logFile, text, err => {
                         if (err) {
                             console.error(err)
                             return
