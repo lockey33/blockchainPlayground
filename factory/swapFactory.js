@@ -317,6 +317,7 @@ export default class SwapFactory {
         console.log('initialAmountIn :',initialAmountIn)
         console.log('initialAmountOut :',initialAmountOut)
         const logFile = appDir + '/' + tokenToWatch + '.txt'
+        let stream = fs.createWriteStream(logFile, {flags:'a'});
 
         const watchPrice = setInterval(async() => {
             try {
@@ -327,27 +328,17 @@ export default class SwapFactory {
 
                 console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB')
 
-                if(pourcentageFluctuation >= 2){
-                    const text = "Le token a augmenté de " + pourcentageFluctuation+ " %" + actualDate
+                if(pourcentageFluctuation === 0){
+                    const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
                     console.log(text)
-                    fs.appendFile(logFile, text, err => {
-                        if (err) {
-                            console.error(err)
-                            return
-                        }
-                    })
+                    stream.write(text + "\n");
+
                 }
 
                 if(pourcentageFluctuation <= -2){
-                    const text = "Le token a diminué de 2% " + pourcentageFluctuation+ " % " + actualDate
+                    const text = "Le token a diminué de " + pourcentageFluctuation+ "% " + actualDate
                     console.log(text)
-                    console.log(logFile)
-                    fs.appendFile(logFile, text, err => {
-                        if (err) {
-                            console.error(err)
-                            return
-                        }
-                    })
+                    stream.write(text + "\n");
                 }
 
             }catch(err){
