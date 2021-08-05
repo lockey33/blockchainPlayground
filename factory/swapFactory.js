@@ -327,7 +327,8 @@ export default class SwapFactory {
                 const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
 
                 console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB', actualDate)
-
+                const text = pourcentageFluctuation+ "% " + actualDate
+                stream.write(text + "\n");
                 if(pourcentageFluctuation >= 10){
                     const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
                     console.log(text)
