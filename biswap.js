@@ -23,7 +23,7 @@ const watchObject = {
 
     buy:{
          target : -15,
-         buyValue : 0.3,
+         buyValue : 0.15,
          buySlippage : 25,
          buyGas : 5
      },
