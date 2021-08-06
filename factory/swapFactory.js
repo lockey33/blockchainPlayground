@@ -382,7 +382,7 @@ export default class SwapFactory {
                 }
 */
 
-                if(pourcentageFluctuation <= -100){
+                if(pourcentageFluctuation <= -50){
                     const text = "Le token a diminué de " + pourcentageFluctuation+ "% " + actualDate
                     console.log(text)
                     stream.write(text + "\n");

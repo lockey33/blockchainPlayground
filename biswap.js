@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const factory =  new GlobalFactory("prod", "cash")
 await factory.init()
 
-let tokenToWatch = await ethers.utils.getAddress("0x965f527d9159dce6288a2219db51fc6eef120dd1") // biswap
+let tokenToWatch = await ethers.utils.getAddress("0x54626300818e5c5b44db0fcf45ba4943ca89a9e2") // checoin
 let params = process.argv.slice(2)
 const { exec } = require("child_process");
 if(params[0]){
