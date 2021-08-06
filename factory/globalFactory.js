@@ -16,7 +16,7 @@ import scheduleFactory from "./scheduleFactory.js";
 import snipeFactory from "./snipeFactory.js";
 
 export default class globalFactory {
-    constructor(mode, accountName, blockchain = "bsc") {
+    constructor(mode, accountName, blockchain = "bsc", router) {
         switch(mode){
             case "prod":
                 let prodConfig = prodBscConfig
@@ -35,6 +35,18 @@ export default class globalFactory {
             case "default":
                 break;
         }
+
+        switch(router){
+            case "biswap":
+                this.config.router = this.config.biswap.router
+                this.config.factory = this.config.biswap.factory
+                break;
+            default:
+                this.config.router = this.config.pancakeswap.router
+                this.config.factory = this.config.pancakeswap.factory
+                break;
+        }
+
         this.helper = new HelperFactory(this.config)
         this.dbFactory = new dbFactory()
         this.contractManager = new ContractFactory(this.config, this.helper)

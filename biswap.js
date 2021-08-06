@@ -19,15 +19,16 @@ const watchObject = {
     tokenToWatch: tokenToWatch,
     gasLimit : 1000000,
     estimateBuy : false,
+    reversed: false, // false BNB -> TOKEN || true TOKEN -> BNB
 
     buy:{
-         targetIncrease : 5,
-         buyValue : 0.01,
-         buySlippage : 15,
-         buyGas : 8,
+         target : -15,
+         buyValue : 0.3,
+         buySlippage : 25,
+         buyGas : 5
      },
     sell: {
-        targetDecrease: 20,
+        target: 20,
         sellValue : 100,
         sellSlippage : 8,
         sellGas : 6,

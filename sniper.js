@@ -25,7 +25,7 @@ const snipeObject = {
      buySlippage : 2000,
      buyGas : 8,
 
-     estimateBuy : false,
+     estimateBuy : true,
 
      sellValue : 100,
      sellSlippage : 50,

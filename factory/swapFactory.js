@@ -47,12 +47,23 @@ export default class SwapFactory {
         }
     }
 
+    convertToBigNumber(value, unit){
+        if(ethers.BigNumber.isBigNumber(value)){
+            return value
+        }
+
+        return ethers.utils.parseUnits(value.toString(), unit)
+    }
+
     async buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy = false, tryAmount = 0){
+
         const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
         const tokenOutDecimals = await this.contractManager.callContractMethod(tokenOutContractInstance, "decimals")
 
         const tokenInInstance = new Token(this.config.chain, tokenIn, 18)
         const tokenOutInstance = new Token(this.config.chain, tokenOut, tokenOutDecimals)
+
+
 
         let pairData = null
         try{
@@ -82,38 +93,42 @@ export default class SwapFactory {
         }
         const tradeOptions = await this.getTradeOptions(allowedSlippage, feeOnTransfer)
 
-        gasPrice = ethers.utils.parseUnits(gasPrice.toString(), 'gwei')
+        gasPrice = this.convertToBigNumber(gasPrice, 'gwei')
 
         const swap = Router.swapCallParameters(trade, tradeOptions, true, false)
         const transactionOptions = {gasPrice: gasPrice, gasLimit: gasLimit}
-        transactionOptions.value = ethers.utils.parseUnits(value.toString(), 'ether')
-        console.log(swap)
-        //this.approveIfNeeded(tokenOutContractInstance, ethers.utils.parseUnits(this.approveMaxValue), 1000000, gasPrice)
+        transactionOptions.value = this.convertToBigNumber(value, 'ether')
+        console.log('gas', this.helper.readableValue(gasPrice, '9'))
+        console.log(this.helper.readableValue(value, '18'))
         let confirm = null
+
         if(estimateBuy) {
             try {
-                let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
+                //let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
                 let buyAmount = ethers.utils.parseUnits(value.toString(), "ether")
-/*                let test = {
-                    from : "0x9c4b9a2874de56ccf90027f1b50cee7f3c5fd9ca",
-                    to: "0x10ed43c718714eb63d5aa57b78b54704e256024e",
-                    nonce: this.config.web3.utils.toHex(this.config.web3.eth.getTransactionCount("0x9c4b9a2874de56ccf90027f1b50cee7f3c5fd9ca")),
+                let contract = new this.config.web3.eth.Contract(PANCAKE, this.config.router)
+                let swapData = contract.methods[swap.methodName](...swap.args).encodeABI();
+
+                let rawTransaction = {
+                    from : this.config.recipient,
+                    to: this.config.router,
+                    nonce: this.config.web3.utils.toHex(this.config.web3.eth.getTransactionCount(this.config.recipient)),
                     gasLimit: this.config.web3.utils.toHex(gasLimit),
                     gasPrice: this.config.web3.utils.toHex(gasPrice),
                     value: this.config.web3.utils.toHex(buyAmount),
                     chainId: 56,
-                    data: rawData
-                }*/
+                    data: swapData
+                }
 
-                //let simulateTransaction = await this.config.web3.eth.call(test)
-                //console.log(simulateTransaction)
-                //const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
-                //confirm = await result.wait()
+                let simulateTransaction = await this.config.web3.eth.call(rawTransaction)
+                console.log(simulateTransaction)
+                const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
+                confirm = await result.wait()
             } catch (err) {
-                console.log("gas estimation error, retry now")
+                console.log("simulation error, retry now")
                 console.log(err)
                 tryAmount++
-                //return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy, tryAmount)
+                return await this.buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy, tryAmount)
             }
         }else{
             const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
@@ -307,12 +322,25 @@ export default class SwapFactory {
         const tokenToWatchDecimals = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "decimals")
         const BNBDecimals = await this.contractManager.callContractMethod(BNBContractInstance, "decimals")
 
-        let tokenBalance = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "balanceOf")
+        let tokenBalance = null
+        let amounts = null
+        let initialAmountIn = null
+        let initialAmountOut = null
+
+        if(params.reversed === false){ // Bnb -> Token
+            tokenBalance = await this.accountManager.getWalletBalance(this.config.recipient)
+            amounts = await this.contractManager.checkLiquidity( tokenBalance, this.config.WBNB, params.tokenToWatch)
+            initialAmountIn = this.helper.readableValue(amounts[0].toString(), BNBDecimals)
+            initialAmountOut = this.helper.readableValue(amounts[1].toString(), tokenToWatchDecimals)
+        }else{ // Token -> Bnb
+            tokenBalance = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "balanceOf")
+            amounts = await this.contractManager.checkLiquidity( tokenBalance, params.tokenToWatch, this.config.WBNB)
+            initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenToWatchDecimals)
+            initialAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
+        }
+
         console.log(tokenBalance)
         console.log(this.helper.readableValue(tokenBalance.toString(), tokenToWatchDecimals))
-        let amounts = await this.contractManager.checkLiquidity( tokenBalance, params.tokenToWatch, this.config.WBNB)
-        let initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenToWatchDecimals)
-        let initialAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
 
         console.log('initialAmountIn :',initialAmountIn)
         console.log('initialAmountOut :',initialAmountOut)
@@ -321,26 +349,45 @@ export default class SwapFactory {
 
         const watchPrice = setInterval(async() => {
             try {
-                let amounts = await this.contractManager.checkLiquidity(tokenBalance, tokenToWatch, this.config.WBNB)
-                let actualAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
-                let pourcentageFluctuation = this.helper.calculateIncreaseReversed(initialAmountOut, actualAmountOut)
+                let amounts = null
+                let actualAmountOut = null
+                let pourcentageFluctuation = null
+
+                if(params.reversed === false){
+                    amounts = await this.contractManager.checkLiquidity(tokenBalance, this.config.WBNB, params.tokenToWatch)
+                    actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenToWatchDecimals)
+                    pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut, actualAmountOut)
+                }else{
+                    amounts = await this.contractManager.checkLiquidity( tokenBalance, params.tokenToWatch, this.config.WBNB)
+                    actualAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
+                    pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut, actualAmountOut)
+                }
+
+
+                if(params.reversed === true){
+                }
                 const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
 
                 console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB', actualDate)
                 const text = pourcentageFluctuation+ "% " + actualDate
                 stream.write(text + "\n");
-                if(pourcentageFluctuation >= 10){
+/*
+                if(pourcentageFluctuation >= 5){
                     const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
                     console.log(text)
                     stream.write(text + "\n");
                     clearInterval(watchPrice)
-                    await this.swap("sell",params.tokenToWatch, this.config.WBNB, sellParams.sellValue, sellParams.sellSlippage, sellParams.sellGas, params.gasLimit, true)
+                    //await this.swap("sell",params.tokenToWatch, this.config.WBNB, sellParams.sellValue, sellParams.sellSlippage, sellParams.sellGas, params.gasLimit, true)
+                    await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, buyParams.estimateBuy)
                 }
+*/
 
-                if(pourcentageFluctuation <= -2){
+                if(pourcentageFluctuation <= -100){
                     const text = "Le token a diminué de " + pourcentageFluctuation+ "% " + actualDate
                     console.log(text)
                     stream.write(text + "\n");
+                    clearInterval(watchPrice)
+                    await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, buyParams.estimateBuy)
                 }
 
             }catch(err){
