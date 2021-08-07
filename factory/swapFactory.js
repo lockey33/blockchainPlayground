@@ -389,7 +389,7 @@ export default class SwapFactory {
             console.log(text)
             clearInterval(watchPriceInterval)
 
-            await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, buyParams.estimateBuy)
+            await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, params.estimateBuy)
 
             return text
 
