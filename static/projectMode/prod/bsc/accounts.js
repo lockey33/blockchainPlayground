@@ -5,9 +5,9 @@ export default
         "address": "0x975e2351e0bd4398C59D0a9dab28072D8A09913F",
         "privateKey": "cd08b28ab34c2fb327d3df6f80f0333b9900c4262888d723a0bf534e3f4e8cfb",
     },
-    "account1":{
-        "address": "0x3Ce64e0e548b85E86e6786613FF97Dbb2C23481C",
-        "privateKey": "6efa19b7534095c84baaf3b017810c37fdd99cb44c4f07c5bf4ef2aa4c474ab5",
+    "biswap":{
+        "address": "0x6b5aac2751Dc288f0DbFD8D07328b7E02728853b",
+        "privateKey": "f8da773dbfa580f7d58c634e8efa5f64e67b6981695b51570fcb44e5bbee6bf6",
     },
     "account2" :{
         "address": "0xd0B52f0BBeE73A21A53BBB2A4045259F4069D54D",

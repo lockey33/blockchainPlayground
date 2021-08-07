@@ -3,10 +3,10 @@ import ethers from "ethers";
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
-const factory =  new GlobalFactory("prod", "biswap")
+const factory =  new GlobalFactory("prod", "cash")
 await factory.init()
 
-let tokenToWatch = await ethers.utils.getAddress("0x965f527d9159dce6288a2219db51fc6eef120dd1") // biswap
+let tokenToWatch = await ethers.utils.getAddress("0x54626300818e5c5b44db0fcf45ba4943ca89a9e2") // checoin
 let params = process.argv.slice(2)
 const { exec } = require("child_process");
 if(params[0]){
@@ -19,19 +19,19 @@ const watchObject = {
     tokenToWatch: tokenToWatch,
     gasLimit : 1000000,
     estimateBuy : true,
-    loop: true,
+    reversed: true, // false BNB -> TOKEN || true TOKEN -> BNB
 
     buy:{
-         target : -4,
-         buyValue : 0.09,
-         buySlippage : 1,
+         target : -15,
+         buyValue : 0.15,
+         buySlippage : 25,
          buyGas : 5
      },
     sell: {
-        target: 4,
+        target: 20,
         sellValue : 100,
-        sellSlippage : 1,
-        sellGas : 5,
+        sellSlippage : 8,
+        sellGas : 6,
     }
 
 }

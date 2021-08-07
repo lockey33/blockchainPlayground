@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/watcher.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/0x54626300818E5C5b44Db0fcf45Ba4943CA89A9e2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/0x54626300818E5C5b44Db0fcf45Ba4943CA89A9e2.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/0x965F527D9159dCe6288a2219DB51fc6Eef120dD1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/0x965F527D9159dCe6288a2219DB51fc6Eef120dD1.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/biswap.js" beforeDir="false" afterPath="$PROJECT_DIR$/biswap.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/scheduleFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/scheduleFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/bsc/accounts.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/projectMode/prod/bsc/accounts.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,7 +127,9 @@
       <workItem from="1627995911603" duration="4905000" />
       <workItem from="1628010031252" duration="46000" />
       <workItem from="1628199014334" duration="14729000" />
-      <workItem from="1628286098403" duration="155000" />
+      <workItem from="1628286098403" duration="250000" />
+      <workItem from="1628290389068" duration="682000" />
+      <workItem from="1628325328401" duration="5661000" />
     </task>
     <servers />
   </component>

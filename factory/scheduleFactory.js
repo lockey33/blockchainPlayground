@@ -46,9 +46,15 @@ export default class scheduleFactory {
     }
 
     async getProfitOnToken(params){
-
-        const watcher = await this.swap.watchTokenPrice(params.tokenToWatch, params)
-
+        for(let i = 0; i <= 3; i++){
+            if(i % 2 == 0){ // pair
+                console.log('listen for buy')
+                await this.swap.watchTokenPrice("buy", params)
+            }else{ // impair
+                console.log('listen for sell')
+                await this.swap.watchTokenPrice("sell", params)
+            }
+        }
     }
 
 

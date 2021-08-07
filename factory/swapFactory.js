@@ -312,10 +312,9 @@ export default class SwapFactory {
 
     }
 
-    async watchTokenPrice(tokenToWatch, params){
+    async watchTokenPrice(action, params){
 
-        const buyParams = params.buy
-        const sellParams = params.sell
+        if(!action) return
 
         const tokenToWatchContractInstance =  await this.contractManager.getFreeContractInstance(params.tokenToWatch, ERC20)
         const BNBContractInstance =  await this.contractManager.getFreeContractInstance(this.config.WBNB, ERC20)
@@ -327,7 +326,8 @@ export default class SwapFactory {
         let initialAmountIn = null
         let initialAmountOut = null
 
-        if(params.reversed === false){ // Bnb -> Token
+
+        if(action === "buy"){ // Bnb -> Token
             tokenBalance = await this.accountManager.getWalletBalance(this.config.recipient)
             amounts = await this.contractManager.checkLiquidity( tokenBalance, this.config.WBNB, params.tokenToWatch)
             initialAmountIn = this.helper.readableValue(amounts[0].toString(), BNBDecimals)
@@ -344,56 +344,64 @@ export default class SwapFactory {
 
         console.log('initialAmountIn :',initialAmountIn)
         console.log('initialAmountOut :',initialAmountOut)
-        const logFile = appDir + '/' + tokenToWatch + '.txt'
+        const logFile = appDir + '/' + params.token + '.txt'
         let stream = fs.createWriteStream(logFile, {flags:'a'});
 
-        const watchPrice = setInterval(async() => {
+        const watchPriceInterval = setInterval(async() => {
             try {
                 let amounts = null
                 let actualAmountOut = null
                 let pourcentageFluctuation = null
 
-                if(params.reversed === false){
+                if(action === "buy"){
                     amounts = await this.contractManager.checkLiquidity(tokenBalance, this.config.WBNB, params.tokenToWatch)
                     actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenToWatchDecimals)
                     pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut, actualAmountOut)
                 }else{
                     amounts = await this.contractManager.checkLiquidity( tokenBalance, params.tokenToWatch, this.config.WBNB)
                     actualAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
-                    pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut, actualAmountOut)
+                    pourcentageFluctuation = this.helper.calculateIncreaseReversed(initialAmountOut, actualAmountOut)
                 }
 
-
-                if(params.reversed === true){
-                }
                 const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
 
                 console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB', actualDate)
                 const text = pourcentageFluctuation+ "% " + actualDate
                 stream.write(text + "\n");
-/*
-                if(pourcentageFluctuation >= 5){
-                    const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
-                    console.log(text)
-                    stream.write(text + "\n");
-                    clearInterval(watchPrice)
-                    //await this.swap("sell",params.tokenToWatch, this.config.WBNB, sellParams.sellValue, sellParams.sellSlippage, sellParams.sellGas, params.gasLimit, true)
-                    await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, buyParams.estimateBuy)
-                }
-*/
 
-                if(pourcentageFluctuation <= -50){
-                    const text = "Le token a diminué de " + pourcentageFluctuation+ "% " + actualDate
-                    console.log(text)
-                    stream.write(text + "\n");
-                    clearInterval(watchPrice)
-                    await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, buyParams.estimateBuy)
-                }
-
+                const response = await this.buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval)
+                stream.write(response + "\n");
             }catch(err){
                 console.log(err)
             }
         }, 1000)
+    }
+
+    async buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval){
+
+        const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
+        const buyParams = params.buy
+        const sellParams = params.sell
+
+        if(action === "buy" && pourcentageFluctuation <= params.buy.target){
+            const text = "Le token a diminué de " + pourcentageFluctuation+ "% " + actualDate
+            console.log(text)
+            clearInterval(watchPriceInterval)
+
+            await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, buyParams.estimateBuy)
+
+            return text
+
+        }else if(action === "sell" && pourcentageFluctuation >= params.sell.target){
+            const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
+            console.log(text)
+            clearInterval(watchPriceInterval)
+
+            await this.swap("sell",params.tokenToWatch, this.config.WBNB, sellParams.sellValue, sellParams.sellSlippage, sellParams.sellGas, params.gasLimit, true)
+
+            return text
+        }
+
     }
 
     async listenPriceOfCoin(typeOfListen,tokenIn, tokenOut, tokenOutName, targetIncrease, value, sellSlippage, sellGas, gasLimit, feeOnTransfer, goOut = false){
