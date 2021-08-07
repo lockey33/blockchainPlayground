@@ -315,66 +315,67 @@ export default class SwapFactory {
     async watchTokenPrice(action, params){
 
         if(!action) return
+        return await new Promise(async(resolve) => {
+            const tokenToWatchContractInstance = await this.contractManager.getFreeContractInstance(params.tokenToWatch, ERC20)
+            const BNBContractInstance = await this.contractManager.getFreeContractInstance(this.config.WBNB, ERC20)
+            const tokenToWatchDecimals = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "decimals")
+            const BNBDecimals = await this.contractManager.callContractMethod(BNBContractInstance, "decimals")
 
-        const tokenToWatchContractInstance =  await this.contractManager.getFreeContractInstance(params.tokenToWatch, ERC20)
-        const BNBContractInstance =  await this.contractManager.getFreeContractInstance(this.config.WBNB, ERC20)
-        const tokenToWatchDecimals = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "decimals")
-        const BNBDecimals = await this.contractManager.callContractMethod(BNBContractInstance, "decimals")
-
-        let tokenBalance = null
-        let amounts = null
-        let initialAmountIn = null
-        let initialAmountOut = null
+            let tokenBalance = null
+            let amounts = null
+            let initialAmountIn = null
+            let initialAmountOut = null
 
 
-        if(action === "buy"){ // Bnb -> Token
-            tokenBalance = await this.accountManager.getWalletBalance(this.config.recipient)
-            amounts = await this.contractManager.checkLiquidity( tokenBalance, this.config.WBNB, params.tokenToWatch)
-            initialAmountIn = this.helper.readableValue(amounts[0].toString(), BNBDecimals)
-            initialAmountOut = this.helper.readableValue(amounts[1].toString(), tokenToWatchDecimals)
-        }else{ // Token -> Bnb
-            tokenBalance = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "balanceOf")
-            amounts = await this.contractManager.checkLiquidity( tokenBalance, params.tokenToWatch, this.config.WBNB)
-            initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenToWatchDecimals)
-            initialAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
-        }
-
-        console.log(tokenBalance)
-        console.log(this.helper.readableValue(tokenBalance.toString(), tokenToWatchDecimals))
-
-        console.log('initialAmountIn :',initialAmountIn)
-        console.log('initialAmountOut :',initialAmountOut)
-        const logFile = appDir + '/' + params.token + '.txt'
-        let stream = fs.createWriteStream(logFile, {flags:'a'});
-
-        const watchPriceInterval = setInterval(async() => {
-            try {
-                let amounts = null
-                let actualAmountOut = null
-                let pourcentageFluctuation = null
-
-                if(action === "buy"){
-                    amounts = await this.contractManager.checkLiquidity(tokenBalance, this.config.WBNB, params.tokenToWatch)
-                    actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenToWatchDecimals)
-                    pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut, actualAmountOut)
-                }else{
-                    amounts = await this.contractManager.checkLiquidity( tokenBalance, params.tokenToWatch, this.config.WBNB)
-                    actualAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
-                    pourcentageFluctuation = this.helper.calculateIncreaseReversed(initialAmountOut, actualAmountOut)
-                }
-
-                const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
-
-                console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB', actualDate)
-                const text = pourcentageFluctuation+ "% " + actualDate
-                stream.write(text + "\n");
-
-                const response = await this.buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval)
-                stream.write(response + "\n");
-            }catch(err){
-                console.log(err)
+            if (action === "buy") { // Bnb -> Token
+                tokenBalance = await this.accountManager.getWalletBalance(this.config.recipient)
+                amounts = await this.contractManager.checkLiquidity(tokenBalance, this.config.WBNB, params.tokenToWatch)
+                initialAmountIn = this.helper.readableValue(amounts[0].toString(), BNBDecimals)
+                initialAmountOut = this.helper.readableValue(amounts[1].toString(), tokenToWatchDecimals)
+            } else { // Token -> Bnb
+                tokenBalance = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "balanceOf")
+                amounts = await this.contractManager.checkLiquidity(tokenBalance, params.tokenToWatch, this.config.WBNB)
+                initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenToWatchDecimals)
+                initialAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
             }
-        }, 1000)
+
+            console.log(tokenBalance)
+            console.log(this.helper.readableValue(tokenBalance.toString(), tokenToWatchDecimals))
+
+            console.log('initialAmountIn :', initialAmountIn)
+            console.log('initialAmountOut :', initialAmountOut)
+            const logFile = appDir + '/' + params.token + '.txt'
+            let stream = fs.createWriteStream(logFile, {flags: 'a'});
+
+            const watchPriceInterval = setInterval(async () => {
+                try {
+                    let amounts = null
+                    let actualAmountOut = null
+                    let pourcentageFluctuation = null
+
+                    if (action === "buy") {
+                        amounts = await this.contractManager.checkLiquidity(tokenBalance, this.config.WBNB, params.tokenToWatch)
+                        actualAmountOut = this.helper.readableValue(amounts[1].toString(), tokenToWatchDecimals)
+                        pourcentageFluctuation = this.helper.calculateIncrease(initialAmountOut, actualAmountOut)
+                    } else {
+                        amounts = await this.contractManager.checkLiquidity(tokenBalance, params.tokenToWatch, this.config.WBNB)
+                        actualAmountOut = this.helper.readableValue(amounts[1].toString(), BNBDecimals)
+                        pourcentageFluctuation = this.helper.calculateIncreaseReversed(initialAmountOut, actualAmountOut)
+                    }
+
+                    const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
+
+                    console.log(pourcentageFluctuation, '%', 'initialAmountOut', initialAmountOut, 'BNB', 'actual', actualAmountOut, 'BNB', actualDate)
+                    const text = pourcentageFluctuation + "% " + actualDate
+                    stream.write(text + "\n");
+
+                    const response = await this.buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval)
+                    stream.write(response + "\n");
+                } catch (err) {
+                    console.log(err)
+                }
+            }, 1000)
+        })
     }
 
     async buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval){
