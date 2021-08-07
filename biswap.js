@@ -24,13 +24,13 @@ const watchObject = {
     buy:{
          target : -4,
          buyValue : 0.09,
-         buySlippage : 1,
+         buySlippage : 3,
          buyGas : 5
      },
     sell: {
         target: 4,
         sellValue : 100,
-        sellSlippage : 1,
+        sellSlippage : 3,
         sellGas : 5,
     }
 
