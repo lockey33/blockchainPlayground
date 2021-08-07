@@ -78,15 +78,18 @@ export default class ContractFactory {
         return await this.helper.parseToken(balanceOfToken.toString(), tokenInstance, tokenContractInstance)
     }
 
-    async checkLiquidity(balanceTokenIn, tokenIn, tokenOut) {
+    async checkLiquidity(balanceTokenIn, tokenIn, tokenOut, loop = false) {
         try {
             if(balanceTokenIn == 0){
                 balanceTokenIn = ethers.utils.parseUnits("1", "ether")
             }
-            const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
+            const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut}
             return await this.callContractMethod(this.contracts.routerFreeContractInstance, "getAmountsOut", options)
         } catch (err) {
             console.log("pas de liquidité", tokenIn, tokenOut)
+            if(loop === true){
+                await this.checkLiquidity(balanceTokenIn, tokenIn, tokenOut, loop)
+            }
             return false
         }
     }
