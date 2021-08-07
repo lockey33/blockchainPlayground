@@ -20,17 +20,18 @@ const watchObject = {
     gasLimit : 1000000,
     estimateBuy : true,
     loop: true,
+    loopSwap: true,
 
     buy:{
-         target : -4,
+         target : 0,
          buyValue : 0.09,
          buySlippage : 3,
          buyGas : 5
      },
     sell: {
-        target: 4,
+        target: 0,
         sellValue : 100,
-        sellSlippage : 3,
+        sellSlippage : 0,
         sellGas : 5,
     }
 

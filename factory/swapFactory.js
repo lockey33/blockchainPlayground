@@ -140,7 +140,7 @@ export default class SwapFactory {
         return confirm
     }
 
-    async swap(typeOfSwap = null, tokenIn, tokenOut, value, allowedSlippage = 12, gasPrice, gasLimit, feeOnTransfer = false){
+    async swap(typeOfSwap = null, tokenIn, tokenOut, value, allowedSlippage = 12, gasPrice, gasLimit, feeOnTransfer = false, estimateBuy = false){
         //Contracts
         const tokenInContractInstance =  await this.contractManager.getFreeContractInstance(tokenIn, ERC20)
         const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
@@ -190,21 +190,47 @@ export default class SwapFactory {
             transactionOptions.value = ethers.utils.parseUnits(value.toString(), 'ether')
         }
         console.log(swap)
-        //verify transaction
-        try{
-            let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
-            console.log(estimateGas)
-        }catch(err){
-            console.log("gas estimation error, retry now")
-            console.log(err)
-            if(feeOnTransfer === false){ // si ça fail c'est peut-être qu'il faut activé le feeOnTransfer ... ou pas
-                return await this.swap(typeOfSwap, tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, true)
+        let confirm = null
+        if(estimateBuy) {
+            try {
+                //let estimateGas = await this.contractManager.contracts.routerFreeContractInstance.estimateGas[swap.methodName](...swap.args, transactionOptions)
+                let contract = new this.config.web3.eth.Contract(PANCAKE, this.config.router)
+                let swapData = contract.methods[swap.methodName](...swap.args).encodeABI();
+
+                let rawTransaction = {
+                    from : this.config.recipient,
+                    to: this.config.router,
+                    nonce: this.config.web3.utils.toHex(this.config.web3.eth.getTransactionCount(this.config.recipient)),
+                    gasLimit: this.config.web3.utils.toHex(gasLimit),
+                    gasPrice: this.config.web3.utils.toHex(gasPrice),
+                    chainId: 56,
+                }
+
+                let simulateTransaction = await this.config.web3.eth.call(rawTransaction)
+                console.log(simulateTransaction)
+                const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
+                confirm = await result.wait()
+            } catch (err) {
+                console.log("simulation error")
+                console.log(err)
+                return false
             }
+        }else{
+            try{
+                const result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
+                console.log(result)
+                confirm = await result.wait()
+            }catch(err){
+                console.log("trade error")
+                console.log(err)
+                return false
+            }
+
         }
-        let result = await this.contractManager.callContractMethod(this.contractManager.contracts.routerPaidContractInstance, swap.methodName, swap.args, transactionOptions)
-        let confirm = await result.wait()
-        console.log(confirm)
+
+        console.log('acheté')
         return confirm
+
 
     }
 
@@ -315,7 +341,6 @@ export default class SwapFactory {
     async watchTokenPrice(action, params){
 
         if(!action) return
-        return await new Promise(async(resolve) => {
             const tokenToWatchContractInstance = await this.contractManager.getFreeContractInstance(params.tokenToWatch, ERC20)
             const BNBContractInstance = await this.contractManager.getFreeContractInstance(this.config.WBNB, ERC20)
             const tokenToWatchDecimals = await this.contractManager.callContractMethod(tokenToWatchContractInstance, "decimals")
@@ -347,6 +372,16 @@ export default class SwapFactory {
             const logFile = appDir + '/' + params.token + '.txt'
             let stream = fs.createWriteStream(logFile, {flags: 'a'});
 
+            let response = await this.watcherInterval(initialAmountOut, params, action, stream, tokenToWatchDecimals, tokenBalance, BNBDecimals)
+            if(response.status === false){
+                params.sell.target = 1
+                response = await this.watcherInterval(initialAmountOut, params, action, stream, tokenToWatchDecimals, tokenBalance, BNBDecimals)
+            }
+
+    }
+
+    async watcherInterval(initialAmountOut, params, action, stream, tokenToWatchDecimals, tokenBalance, BNBDecimals){
+        return await new Promise(async (resolve, reject) => {
             const watchPriceInterval = setInterval(async () => {
                 try {
                     let amounts = null
@@ -369,39 +404,59 @@ export default class SwapFactory {
                     const text = pourcentageFluctuation + "% " + actualDate
                     stream.write(text + "\n");
 
-                    const response = await this.buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval)
-                    stream.write(response + "\n");
+                    let response = await this.buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval)
+                    if(response.hasOwnProperty("text")){
+                        stream.write(response.text + "\n");
+                    }
+                    resolve(response)
                 } catch (err) {
                     console.log(err)
+                    let response = {status: false, data: err}
+                    reject(response)
                 }
             }, 1000)
         })
+
     }
 
     async buyOrSellAtPourcentage(action, pourcentageFluctuation, params, watchPriceInterval){
-
+        //let testObject = {action: action, pourcentageFluctuation: pourcentageFluctuation, params: params, watchPriceInterval: watchPriceInterval}
+        //console.log(testObject)
         const actualDate = moment().format('YYYY-MM-DD HH:mm:ss')
         const buyParams = params.buy
         const sellParams = params.sell
+
+        let response = {}
 
         if(action === "buy" && pourcentageFluctuation <= params.buy.target){
             const text = "Le token a diminué de " + pourcentageFluctuation+ "% " + actualDate
             console.log(text)
             clearInterval(watchPriceInterval)
 
-            await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, params.estimateBuy)
+            let buyResponse = await this.buyFast(this.config.WBNB, params.tokenToWatch, buyParams.buyValue, buyParams.buySlippage, buyParams.buyGas, params.gasLimit, true, params.estimateBuy)
+            response.data = buyResponse
+            response.status = true
+            response.text = text
 
-            return text
+            return response
 
         }else if(action === "sell" && pourcentageFluctuation >= params.sell.target){
             const text = "Le token a augmenté de " + pourcentageFluctuation+ "% " + actualDate
+
             console.log(text)
             clearInterval(watchPriceInterval)
 
-            await this.swap("sell",params.tokenToWatch, this.config.WBNB, sellParams.sellValue, sellParams.sellSlippage, sellParams.sellGas, params.gasLimit, true)
-
-            return text
+            let sellResponse = await this.swap("sell",params.tokenToWatch, this.config.WBNB, sellParams.sellValue, sellParams.sellSlippage, sellParams.sellGas, params.gasLimit, true, params.estimateBuy)
+            response.data = sellResponse
+            response.status = true
+            response.text = text
+            if(sellResponse === false){
+                response.status = false
+            }
+            return response
         }
+
+        return false
 
     }
 

@@ -50,9 +50,10 @@ export default class scheduleFactory {
             if(i % 2 == 0){ // pair
                 console.log('listen for sell')
                 await this.swap.watchTokenPrice("sell", params)
+                console.log('ici poro')
             }else{ // impair
                 console.log('listen for buy')
-                await this.swap.watchTokenPrice("buy", params)
+                //await this.swap.watchTokenPrice("buy", params)
             }
         }
     }
