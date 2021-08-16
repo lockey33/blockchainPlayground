@@ -38,22 +38,52 @@ export default class scheduleFactory {
                 }catch(buyErr){
                     console.log('erreur achat', buyErr)
                 }
-                const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
-                await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
+                //const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
+                //await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
             }
 
         },3000)
     }
 
+    async tradeFairLaunch(snipeObject){
+        return new Promise(async (resolve, reject) => {
+            try{
+                console.log('achat en cours')
+                await this.swap.buyFast(this.config.WBNB, snipeObject.tokenToSnipe, snipeObject.buyValue, snipeObject.buySlippage, snipeObject.buyGas, snipeObject.gasLimit, true, snipeObject.estimateBuy)
+                resolve(true)
+            }catch(buyErr){
+                console.log('erreur achat', buyErr)
+                resolve(false)
+            }
+        })
+
+        //const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
+        //await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
+    }
+
+    async sellFairLaunch(snipeObject){
+        return new Promise(async (resolve, reject) => {
+            try{
+                console.log('vente en cours')
+                await this.swap.swap("sell",snipeObject.tokenToSnipe, this.config.WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
+                resolve(true)
+            }catch(buyErr){
+                console.log('erreur achat', buyErr)
+                resolve(false)
+            }
+        })
+
+    }
+
     async getProfitOnToken(params){
-        for(let i = 0; i <= 3; i++){
+        for(let i = 0; i <= 5; i++){
             if(i % 2 == 0){ // pair
                 console.log('listen for sell')
                 await this.swap.watchTokenPrice("sell", params)
-                console.log('ici poro')
+                console.log('after sell')
             }else{ // impair
                 console.log('listen for buy')
-                //await this.swap.watchTokenPrice("buy", params)
+                await this.swap.watchTokenPrice("buy", params)
             }
         }
     }

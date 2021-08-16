@@ -8,22 +8,24 @@ const resolve = require('path').resolve
 const nodemailer = require('nodemailer');
 const balanceTokenIn = ethers.utils.parseUnits("1", "ether")
 
-const factory =  new GlobalFactory("prod", "cash")
-await factory.init()
+
+
 let params = process.argv.slice(2)
 const { exec } = require("child_process");
 
-const tokenToSnipe = await ethers.utils.getAddress(params[0])
+const snipeWallet = params[0]
+const tokenToSnipe = await ethers.utils.getAddress(params[1])
+const factory =  new GlobalFactory("prod", snipeWallet)
+await factory.init()
 
 console.log("Token a sniper :", tokenToSnipe)
-
 const snipeObject = {
      tokenToSnipe: tokenToSnipe,
-     gasLimit : 1000000,
+     gasLimit : 2000000,
      targetIncrease : 200,
-     buyValue : 0.01,
+     buyValue : 0.08,
      buySlippage : 2000,
-     buyGas : 8,
+     buyGas : 7,
 
      estimateBuy : true,
 
@@ -36,12 +38,12 @@ const snipeObject = {
 
 const snipeObjectTest = {
     tokenToSnipe: tokenToSnipe,
-    gasLimit : 1000000,
+    gasLimit : 300000,
     targetIncrease : 1000,
-    buyValue : 0.01,
-    buySlippage : 1000,
+    buyValue : 0.001,
+    buySlippage : 1,
     buyGas : 5,
-    estimateBuy : false,
+    estimateBuy : true,
 
     sellValue : 100,
     sellSlippage : 30,

@@ -23,15 +23,15 @@ const watchObject = {
     loopSwap: true,
 
     buy:{
-         target : 0,
+         target : -2, // toujours négatif ici sinon ça fais tout planter
          buyValue : 0.09,
-         buySlippage : 3,
+         buySlippage : 1,
          buyGas : 5
      },
     sell: {
-        target: 0,
+        target: 4,
         sellValue : 100,
-        sellSlippage : 0,
+        sellSlippage : 1,
         sellGas : 5,
     }
 

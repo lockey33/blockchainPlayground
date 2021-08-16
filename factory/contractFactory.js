@@ -123,13 +123,13 @@ export default class ContractFactory {
         return true
     }
 
-    async getFreeContractInstance(contractAdress, abi, signerOrProvider = this.config.provider){
-        const contract = new ethers.Contract(contractAdress, abi, signerOrProvider)
+    async getFreeContractInstance(contractAddress, abi, signerOrProvider = this.config.provider){
+        const contract = new ethers.Contract(contractAddress, abi, signerOrProvider)
         return contract
     }
 
-    async getPaidContractInstance(contractAdress, abi, signerOrProvider = this.config.provider){
-        const contract = new ethers.Contract(contractAdress, abi, signerOrProvider)
+    async getPaidContractInstance(contractAddress, abi, signerOrProvider = this.config.provider){
+        const contract = new ethers.Contract(contractAddress, abi, signerOrProvider)
         return contract
     }
 

@@ -3,6 +3,7 @@ const require = createRequire(import.meta.url);
 const resolve = require('path').resolve
 const forever = require('forever-monitor');
 let params = process.argv.slice(2)
+console.log(params)
 const child = new (forever.Monitor)('sniper.js', {
     max: 5,
     silent: false,
