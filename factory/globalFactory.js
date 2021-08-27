@@ -53,12 +53,10 @@ export default class globalFactory {
     }
 
     initContracts(router, PANCAKE, provider){
-
         const contracts = {
             "routerFreeContract": this.contractManager.getFreeContractInstance(router, PANCAKE, provider),
             "routerPaidContract": this.contractManager.getPaidContractInstance(router, PANCAKE, provider),
         }
-
         return contracts
     }
 }

@@ -2,23 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/addLiquidity.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dxSnipe.js" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/globalFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/globalFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/listenerFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontrun.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/listenCoinHunt.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/refacto.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sniper.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/telegram/session.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/telegram/signIn.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/telegram/telegram.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/trade.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +34,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/factory" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="ts.external.directory.path" value="$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external" />
     <property name="vue.rearranger.settings.migration" value="true" />
@@ -120,6 +105,7 @@
       <workItem from="1625314530780" duration="3362000" />
       <workItem from="1625410942555" duration="5990000" />
       <workItem from="1625503993670" duration="824000" />
+      <workItem from="1630086640514" duration="6000" />
     </task>
     <servers />
   </component>
