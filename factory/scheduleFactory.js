@@ -3,12 +3,14 @@ import { Agenda } from 'agenda/es.js';
 import ERC20 from "./abis/erc20.js";
 import PANCAKE from "./abis/pancake.js";
 import moment from "moment";
+import uniqid from "uniqid";
+import axios from "axios";
 const mongoConnectionString = "mongodb://localhost:27017/frontMoney"
 
 
 export default class scheduleFactory {
 
-    constructor(config, dbFactory, contractManager, listener, helper){
+    constructor(config, dbFactory, contractManager, listener, helper, accountManager, swap){
         this.tokenSchema = tokenSchema
         this.config = config
         this.dbFactory = dbFactory
@@ -16,7 +18,49 @@ export default class scheduleFactory {
         this.listener = listener
         this.helper = helper
         this.agenda = new Agenda({ db: { address: mongoConnectionString, collection: "agendaJobs", maxConcurrency: 20, defaultConcurrency: 5 } })
+        this.accountManager = accountManager
+        this.swap = swap
+    }
 
+    async snipeFairLaunch(snipeObject){
+        const WBNB = this.config.WBNB
+        const balanceTokenIn = await this.accountManager.getAccountBalance()
+        let tryAmount = 0
+        const waitLiquidity = setInterval(async() => {
+            tryAmount++
+            let liquidity = await this.contractManager.checkLiquidity( balanceTokenIn, WBNB, snipeObject.tokenToSnipe)
+            console.log("Nombre d'itérations :", tryAmount, liquidity)
+            if(liquidity !== false){
+                clearInterval(waitLiquidity)
+                try{
+                    console.log('achat en cours')
+                    await this.swap.buyFast(WBNB, snipeObject.tokenToSnipe, snipeObject.buyValue, snipeObject.buySlippage, snipeObject.buyGas, snipeObject.gasLimit, true, snipeObject.estimateBuy)
+                }catch(buyErr){
+                    console.log('erreur achat', buyErr)
+                }
+                //const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
+                //await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
+            }
+
+        },3000)
+    }
+
+    async getProfitOnToken(params){
+        for(let i = 0; i <= 3; i++){
+            if(i % 2 == 0){ // pair
+                console.log('listen for sell')
+                await this.swap.watchTokenPrice("sell", params)
+            }else{ // impair
+                console.log('listen for buy')
+                await this.swap.watchTokenPrice("buy", params)
+            }
+        }
+    }
+
+
+    async retryFailedJobs(){
+        const failedJobs = await this.agenda.jobs({'failReason': {$exists: true}})
+        console.log(failedJobs)
     }
 
     async stopAllJobs(filters= {}){
@@ -26,7 +70,6 @@ export default class scheduleFactory {
     }
 
     async runAllJobs(){
-
         const jobs = await this.agenda.jobs()
         await Promise.all(
             jobs.map(async (job) => {
@@ -34,8 +77,6 @@ export default class scheduleFactory {
                 console.log('job runned')
             })
         )
-
-
     }
 
     async listenJobAuto(){
@@ -45,7 +86,9 @@ export default class scheduleFactory {
         await this.runAllJobs()
 
         try{
-            await this.agenda.define(jobName, async (job, done) => {
+            await this.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
+                console.log('auto listen new token')
+
                 const tokens = await this.dbFactory.getTokensFiltered({})
                 await Promise.all(
                     tokens.map(async (token) => {
@@ -61,7 +104,6 @@ export default class scheduleFactory {
     }
 
     async listenPrice(tokenIn, tokenOut, timer){
-        const routerContractInstance = await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
         const tokenInContractInstance =  await this.contractManager.getFreeContractInstance(tokenIn, ERC20)
         const tokenOutContractInstance =  await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
         const tokenInDecimals = await this.contractManager.callContractMethod(tokenInContractInstance, "decimals")
@@ -69,22 +111,22 @@ export default class scheduleFactory {
 
         let balanceTokenIn = await this.contractManager.callContractMethod(tokenInContractInstance, "balanceOf")
         //console.log(this.helper.readableValue(balanceTokenIn.toString(), tokenInDecimals))
-        let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
+        let amounts = await this.contractManager.checkLiquidity( balanceTokenIn, tokenIn, tokenOut) // pour 1 bnb, combien
         let initialAmountIn = this.helper.readableValue(amounts[0].toString(), tokenInDecimals)
         let initialAmountOut = this.helper.readableValue(amounts[1].toString(), tokenOutDecimals) //
         //console.log('initialAmountIn :',initialAmountIn)
         //console.log('initialAmountOut :',initialAmountOut)
         if(amounts !== false){
-            const interval = await this.priceInterval(balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut,tokenOutDecimals, routerContractInstance, timer)
+            const interval = await this.priceInterval(balanceTokenIn,tokenIn, tokenOut, initialAmountIn, initialAmountOut,tokenOutDecimals)
             return interval
         }
     }
 
 
-    async priceInterval(balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutDecimals, routerContractInstance, timer){
+    async priceInterval(balanceTokenIn, tokenIn, tokenOut, initialAmountIn, initialAmountOut, tokenOutDecimals){
         const jobName = "listenToken_" + tokenOut
         await this.agenda.define(jobName, async (job, done) => {
-            let amounts = await this.contractManager.checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut)
+            let amounts = await this.contractManager.checkLiquidity( balanceTokenIn, tokenIn, tokenOut)
             if(amounts === false){
                 console.log('HERRREEEEE')
                 return false
@@ -110,20 +152,77 @@ export default class scheduleFactory {
         await this.agenda.every("4 seconds", jobName);
     }
 
+    async listenWalletsBalance(wallets){
+        await this.agenda.start()
+        const jobName = "listenWalletsBalance_" + uniqid()
+        await this.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
+            try{
+                await Promise.all(
+                    wallets.map(async (wallet) => {
+                        const balance = await this.accountManager.getWalletBalance(wallet)
+                        const readableBalance = await this.helper.readableValue(balance, 18)
+                        await this.dbFactory.snipeSchema.updateOne(
+                            {snipeWallets: {$elemMatch: {address: wallet}}},
+                            {
+                                $set: {
+                                    'snipeWallets.$.balance': readableBalance,
+                                }
+                            })
+                    })
+                )
+                done()
+            }
+            catch(err){
+                console.log(err)
+            }
+        })
+
+        await this.agenda.every("1 minutes", jobName);
+    }
+
+    async listenPaymentWallet(wallet){
+        await this.agenda.start()
+        const jobName = "listenBalance_" + wallet
+        await this.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
+            try{
+                const balance = await this.accountManager.getWalletBalance(wallet)
+                const readableBalance = await this.helper.readableValue(balance, 18)
+                await this.dbFactory.snipeSchema.updateOne(
+                    {"paymentWallet.address": wallet},
+                    {
+                        $set: {
+                            'paymentWallet.balance': readableBalance,
+                        }
+                    })
+                done()
+            }
+            catch(err){
+                console.log(err)
+            }
+        })
+
+        await this.agenda.every("10 secondes", jobName);
+    }
+
 
     async refreshTokensData(){
         await this.agenda.start()
+        await this.retryFailedJobs()
         const jobName = "refreshTokensData"
-        await this.agenda.define(jobName, async (job, done) => {
+        await this.agenda.define(jobName, { lockLifetime: 10000 }, async (job, done) => {
+            try{
+
             const tokensListening = await this.dbFactory.getTokensFiltered({})
             if(tokensListening.length > 0 ){
+/*                job.fail(new Error("insufficient disk space"));
+                return await job.save();*/
                 console.log("refresh")
                 await Promise.all(
                     tokensListening.map(async (token) => {
                         const targetTokenContractInstance = await this.contractManager.getFreeContractInstance(token.contract, ERC20)
                         const targetTokenDecimals = await this.contractManager.callContractMethod(targetTokenContractInstance, "decimals")
-                        const routerContractInstance = await this.contractManager.getPaidContractInstance(this.config.router, PANCAKE, this.config.signer)
-                        const marketCapObject = await this.contractManager.calculateMarketCap(token.contract, targetTokenContractInstance, targetTokenDecimals, routerContractInstance)
+                        let marketCapObject = {marketCap: null, tokenPrice: null}
+                        marketCapObject = await this.contractManager.calculateMarketCap(token.contract, targetTokenContractInstance, targetTokenDecimals)
                         try{
                             await this.dbFactory.tokenSchema.updateOne({contract: token.contract}, {$set: {marketCap: marketCapObject.marketCap, price: marketCapObject.tokenPrice}})
                         }catch(err){
@@ -133,6 +232,10 @@ export default class scheduleFactory {
                 )
             }
             done()
+            }
+            catch(err){
+                console.log(err)
+            }
         })
 
         await this.agenda.every("10 seconds", jobName);

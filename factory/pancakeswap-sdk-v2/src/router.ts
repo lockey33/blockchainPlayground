@@ -68,8 +68,6 @@ export abstract class Router {
    * @param etherOut
    */
   public static swapCallParameters(trade: Trade, options: TradeOptions, etherIn:boolean, etherOut:boolean): SwapParameters {
-    console.log(etherIn)
-    console.log('here')
     // the router does not support both ether in and out
     invariant(!(etherIn && etherOut), 'ETHER_IN_OUT')
     invariant(options.ttl > 0, 'TTL')
@@ -87,7 +85,6 @@ export abstract class Router {
     switch (trade.tradeType) {
       case TradeType.EXACT_INPUT:
         if (etherIn) {
-          console.log('bim')
           methodName = useFeeOnTransfer ? 'swapExactETHForTokensSupportingFeeOnTransferTokens' : 'swapExactETHForTokens'
           // (uint amountOutMin, address[] calldata path, address to, uint deadline)
           args = [amountOut, path, to, deadline]

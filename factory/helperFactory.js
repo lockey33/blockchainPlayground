@@ -1,10 +1,26 @@
 import ethers from 'ethers'
 import {CurrencyAmount, TokenAmount, JSBI, Token} from "./pancakeswap-sdk-v2/dist/index.js";
+import axios from "axios";
 
 export default class HelperFactory {
 
     constructor(config) {
         this.config = config
+    }
+
+    truncate = (fullStr, strLen, separator) => {
+        if (fullStr.length <= strLen) return fullStr;
+
+        separator = separator || '...';
+
+        let sepLen = separator.length,
+            charsToShow = strLen - sepLen,
+            frontChars = Math.ceil(charsToShow/2),
+            backChars = Math.floor(charsToShow/2);
+
+        return fullStr.substr(0, frontChars) +
+            separator +
+            fullStr.substr(fullStr.length - backChars);
     }
 
     async parseAmount(value, currency, tokenContractInstance, decimals){
@@ -17,18 +33,26 @@ export default class HelperFactory {
     }
 
     async parseCurrency(value){
-        const typedValueParsed = ethers.utils.parseUnits(value, 18).toString()
+        const typedValueParsed = ethers.utils.parseUnits(value.toString(), 18)
         if (typedValueParsed !== '0') {
             return new CurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
         }
     }
 
     async parseToken(value, tokenInstance, tokenContractInstance, decimals){
-        const typedValueParsed = ethers.utils.parseUnits(value, decimals).toString()
+        const typedValueParsed = ethers.utils.parseUnits(value.toString(), decimals)
         if (typedValueParsed !== '0') {
             return new TokenAmount(tokenInstance, JSBI.BigInt(typedValueParsed))
         }
         return 0
+    }
+
+
+
+    async getKccUsdPrice(){
+        const response = await axios.get("https://explorer.kcc.io/api/chainstat/kcs")
+        this.config.priceUsd = response.data.data.priceUsd
+        return response.data.data.priceUsd
     }
 
     readableValue(value, decimals){
@@ -53,6 +77,16 @@ export default class HelperFactory {
     }
 
     calculateIncrease(originalAmount, newAmount){
+        //console.log(originalAmount + '-' + newAmount)
+        let increase = originalAmount - newAmount   // 100 - 70 = 30
+        //console.log(newAmount , originalAmount)
+        increase = increase / originalAmount  //  30/ 70
+        increase = increase * 100
+        increase = Math.round(increase)
+        return increase
+    }
+
+    calculateIncreaseReversed(newAmount, originalAmount){
         //console.log(originalAmount + '-' + newAmount)
         let increase = originalAmount - newAmount   // 100 - 70 = 30
         //console.log(newAmount , originalAmount)

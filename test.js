@@ -11,21 +11,20 @@ import ERC20 from "./factory/abis/erc20.js";
     const tokenIn = WBNB;
     const targetToken = "0x99c349d3bcf2a283722113f36db7e374d45d8c54";
     const balanceTokenIn = ethers.utils.parseUnits("1", "ether");
-    const routerContractInstance = await factory.contractManager.getPaidContractInstance(factory.config.router, PANCAKE, factory.config.signer)
 
     const targetTokenContractInstance =  await factory.contractManager.getFreeContractInstance(targetToken, ERC20)
     const targetTokenDecimals = await factory.contractManager.callContractMethod(targetTokenContractInstance, "decimals")
 
     const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: targetToken} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
 
-    const priceOfToken = await factory.contractManager.callContractMethod(routerContractInstance, "getAmountsOut", options)
+    const priceOfToken = await factory.contractManager.callContractMethod(this.factory.contractManager.contracts.routerFreeContractInstance, "getAmountsOut", options)
     let priceOut = await factory.helper.readableValue(priceOfToken[1], targetTokenDecimals)
     priceOut = Math.trunc(priceOut)
     console.log("priceOut", priceOut)
 
     const BUSD = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
     const optionsBUSD = {balanceTokenIn: balanceTokenIn, tokenIn: WBNB, tokenOut: BUSD}
-    const priceOfTokenInBUSD = await factory.contractManager.callContractMethod(routerContractInstance, "getAmountsOut", optionsBUSD)
+    const priceOfTokenInBUSD = await factory.contractManager.callContractMethod(this.factory.contractManager.contracts.routerFreeContractInstance, "getAmountsOut", optionsBUSD)
     const BUSDContract = await factory.contractManager.getFreeContractInstance(BUSD, ERC20)
     const BUSDDecimals = await factory.contractManager.callContractMethod(BUSDContract, "decimals")
     let priceOutInBUSD = await factory.helper.readableValue(priceOfTokenInBUSD[1], BUSDDecimals)

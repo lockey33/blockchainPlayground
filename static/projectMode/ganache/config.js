@@ -1,10 +1,10 @@
 
 export default
 {
-    "account1": {
-        "address": "0x8772d9C624B750c4C21546f6c96FDe0F1Cc2dC57",
-        "privateKey": "390fe1d458ddd4a3b9f38393f5fea7158b5b90b91e770d77ca5de2d31f2a9f72",
-    }
+    "cash":{
+        "address": "0x975e2351e0bd4398C59D0a9dab28072D8A09913F",
+        "privateKey": "cd08b28ab34c2fb327d3df6f80f0333b9900c4262888d723a0bf534e3f4e8cfb",
+    },
 
 }
 

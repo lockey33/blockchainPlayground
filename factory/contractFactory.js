@@ -1,29 +1,51 @@
 import ethers from 'ethers'
 import ERC20 from "./abis/erc20.js";
+import PANCAKE from "./abis/pancake.js";
 
 export default class ContractFactory {
 
     constructor(config, helper) {
         this.config = config
         this.helper = helper
+        this.contracts = null // chargé de manière asynchrone
     }
-    async calculateMarketCap(targetToken, targetTokenContractInstance, targetTokenDecimals, routerContractInstance){
+
+    async initContracts(config, PANCAKE){
+
+        const contracts = {
+            "routerFreeContractInstance": await this.getFreeContractInstance(config.router, PANCAKE, config.signer),
+            "routerPaidContractInstance": await this.getPaidContractInstance(config.router, PANCAKE, config.signer),
+        }
+
+        this.contracts = contracts
+    }
+
+
+
+    async calculateMarketCap(targetToken, targetTokenContractInstance, targetTokenDecimals){
         const WBNB = this.config.WBNB;
         const tokenIn = WBNB;
         const balanceTokenIn = ethers.utils.parseUnits("1", "ether");
 
-        const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: targetToken} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
-
-        const priceOfToken = await this.callContractMethod(routerContractInstance, "getAmountsOut", options)
+        const options = {balanceTokenIn: balanceTokenIn.toString(), tokenIn: tokenIn, tokenOut: targetToken} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
+        //console.log('calcul', options)
+        const priceOfToken = await this.callContractMethod(this.contracts.routerPaidContractInstance, "getAmountsOut", options)
         let priceOut = await this.helper.readableValue(priceOfToken[1], targetTokenDecimals)
 
-        const BUSD = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
-        const optionsBUSD = {balanceTokenIn: balanceTokenIn, tokenIn: WBNB, tokenOut: BUSD}
-        const priceOfTokenInBUSD = await this.callContractMethod(routerContractInstance, "getAmountsOut", optionsBUSD)
-        const BUSDContract = await this.getFreeContractInstance(BUSD, ERC20)
-        const BUSDDecimals = await this.callContractMethod(BUSDContract, "decimals")
-        let priceOutInBUSD = await this.helper.readableValue(priceOfTokenInBUSD[1], BUSDDecimals)
-        priceOutInBUSD = Math.trunc(priceOutInBUSD)
+        let priceOutInBUSD = null
+
+        if(this.config.blockchain === "bsc"){
+            const stableMoney = this.config.stableMoney
+            const optionsBUSD = {balanceTokenIn: balanceTokenIn, tokenIn: WBNB, tokenOut: stableMoney}
+            const priceOfTokenInBUSD = await this.callContractMethod(this.contracts.routerPaidContractInstance, "getAmountsOut", optionsBUSD)
+            const BUSDContract = await this.getFreeContractInstance(stableMoney, ERC20)
+            const BUSDDecimals = await this.callContractMethod(BUSDContract, "decimals")
+            priceOutInBUSD = await this.helper.readableValue(priceOfTokenInBUSD[1], BUSDDecimals)
+            priceOutInBUSD = Math.trunc(priceOutInBUSD)
+        }else if(this.config.blockchain === "kcc"){
+            priceOutInBUSD = await this.helper.getKccUsdPrice()
+        }
+        //console.log(priceOut, priceOutInBUSD)
         let priceOfOneTargetToken = (priceOutInBUSD/priceOut).toFixed(18)
         let totalSupply = await this.callContractMethod(targetTokenContractInstance, "totalSupply")
         totalSupply = await this.helper.toDecimals(totalSupply, targetTokenDecimals)
@@ -35,8 +57,7 @@ export default class ContractFactory {
     async checkTokenBalance(tokenContractInstance, tokenInstance, readable){
 
         const balanceOfToken = await this.callContractMethod(tokenContractInstance, 'balanceOf', this.config.recipient)
-        console.log(this.config.recipient)
-        console.log('balacne', balanceOfToken)
+        console.log('balance', balanceOfToken)
         if(tokenContractInstance.address === this.config.WBNB){
             if(balanceOfToken.isZero()){
                 console.log('Aucun WBNB disponible pour le trade')
@@ -57,15 +78,18 @@ export default class ContractFactory {
         return await this.helper.parseToken(balanceOfToken.toString(), tokenInstance, tokenContractInstance)
     }
 
-    async checkLiquidity(routerContractInstance, balanceTokenIn, tokenIn, tokenOut) {
+    async checkLiquidity(balanceTokenIn, tokenIn, tokenOut, loop = false) {
         try {
             if(balanceTokenIn == 0){
                 balanceTokenIn = ethers.utils.parseUnits("1", "ether")
             }
-            const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut} // j'ai interverti ici pour avoir un pourcentage cohérent voir commentaire dans createIntervalForCoin
-            return await this.callContractMethod(routerContractInstance, "getAmountsOut", options)
+            const options = {balanceTokenIn: balanceTokenIn, tokenIn: tokenIn, tokenOut: tokenOut}
+            return await this.callContractMethod(this.contracts.routerFreeContractInstance, "getAmountsOut", options)
         } catch (err) {
             console.log("pas de liquidité", tokenIn, tokenOut)
+            if(loop === true){
+                await this.checkLiquidity(balanceTokenIn, tokenIn, tokenOut, loop)
+            }
             return false
         }
     }
@@ -120,35 +144,41 @@ export default class ContractFactory {
         if(options.hasOwnProperty("spender")){
             spender = options.spender
         }
-        switch(methodName){
-            case "addLiquidityETH":
-                break;
-            case "getAmountsIn":
-            case "getAmountsOut":
-                resultOfCall = await contractInstance[methodName](options.balanceTokenIn, [options.tokenIn, options.tokenOut])
-                break;
-            case "getReserves":
-                resultOfCall = await contractInstance[methodName](options.factory, options.tokenIn, options.tokenOut)
-                break;
-            case "deposit":
-                resultOfCall = await contractInstance[methodName](options)
-                break;
-            case "allowance":
-                resultOfCall = await contractInstance[methodName](owner, spender)
-                break;
-            case "approve":
-                resultOfCall = await contractInstance[methodName](spender, options.value)
-                break;
-            case "balanceOf":
-                resultOfCall = await contractInstance[methodName](owner)
-                break;
-            case "router":
-                resultOfCall = await contractInstance[swapMethod](...options, transactionOptions)
-                break;
-            default:
-                resultOfCall = await contractInstance[methodName]()
-                break;
+        try{
+            switch(methodName){
+                case "addLiquidityETH":
+                    break;
+                case "getAmountsIn":
+                case "getAmountsOut":
+                    resultOfCall = await contractInstance[methodName](options.balanceTokenIn, [options.tokenIn, options.tokenOut])
+                    break;
+                case "getReserves":
+                    resultOfCall = await contractInstance[methodName](options.factory, options.tokenIn, options.tokenOut)
+                    break;
+                case "deposit":
+                    resultOfCall = await contractInstance[methodName](options)
+                    break;
+                case "allowance":
+                    resultOfCall = await contractInstance[methodName](owner, spender)
+                    break;
+                case "approve":
+                    resultOfCall = await contractInstance[methodName](spender, options.value)
+                    break;
+                case "balanceOf":
+                    resultOfCall = await contractInstance[methodName](owner)
+                    break;
+                case "router":
+                    resultOfCall = await contractInstance[swapMethod](...options, transactionOptions)
+                    break;
+                default:
+                    resultOfCall = await contractInstance[methodName]()
+                    break;
+            }
+        }catch(err){
+            console.log('error', methodName, options)
+            console.log(err)
         }
+
 
         return resultOfCall
     }

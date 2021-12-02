@@ -1,9 +1,11 @@
-import { createRequire } from 'module';
+import init from "./init.js";
 import GlobalFactory from "./factory/globalFactory.js";
-import myAccounts from "./static/projectMode/prod/accounts.js";
+import ethers from 'ethers'
+import moment from "moment";
+import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const resolve = require('path').resolve
-
+global.__basedir = __dirname;
 
 const express = require('express')
 const app = express()
@@ -18,28 +20,34 @@ const io = require('socket.io')(server, {
         origin: '*',
     }
 });
+const factory =  new GlobalFactory("prod", init.account, init.blockchain);
 
-const factory =  new GlobalFactory("prod", myAccounts.account1);
 
 (async () => {
+    await factory.init() // permet de charger les contrats et autres
+/*    await factory.scheduleFactory.agenda.on("start", (job) => {
+        //console.log("Job %s starting", job.attrs.name);
+    });
 
     await factory.scheduleFactory.listenJobAuto()
     console.log('Refresh des jobs planifié')
 
-    await factory.scheduleFactory.refreshTokensData()
-    console.log("Refresh des tokens planifié")
-
-
+    await factory.scheduleFactory.agenda.on("fail", (err, job) => {
+        console.log(`Job failed with error: `, job);
+    });*/
 })();
 
 process.stdin.resume();//so the program will not close instantly
 
 function exitHandler(options, exitCode) {
-    factory.scheduleFactory.stopAllJobs().then(() => {
+/*    factory.scheduleFactory.stopAllJobs().then(() => {
         if (options.cleanup) console.log('clean');
         if (exitCode || exitCode === 0) console.log(exitCode);
         if (options.exit) process.exit();
-    })
+    })*/
+    if (options.cleanup) console.log('clean');
+    if (exitCode || exitCode === 0) console.log(exitCode);
+    if (options.exit) process.exit();
 }
 
 //do something when app is closing
@@ -62,49 +70,98 @@ app.use(bodyParser.urlencoded());
 app.use(bodyParser.raw());
 
 
+app.post('/setPremium', async (req, res) => {
+    let buyerAddress = req.body.buyerAddress
+    let paymentAddress = req.body.paymentAddress
+    const response = await factory.accountManager.setPremium(paymentAddress, buyerAddress, "0.1")
+    await factory.snipeFactory.createSnipeWallets(buyerAddress, 3)
+    res.send(response)
+})
 
-app.get('/getTokens', async (req,res) => {
-    const filters = {marketCap: {$lt: 300000}, listening: true}
-    const allTokens = await factory.dbFactory.getTokensFiltered({marketCap: filters.marketCap})
-    const setListening = await factory.dbFactory.tokenSchema.updateMany({listening: false}, {$set:{listening: true}})
-    console.log('get tokens')
-    res.send(allTokens)
+app.post('/listenPayment', async (req, res) => {
+    let wallet = req.body.paymentWallet
+    await factory.scheduleFactory.listenPaymentWallet(wallet)
+    res.send("Listening payment")
+})
+
+app.post('/listenBnb', async (req, res) => {
+    let wallets = req.body
+    let checkSummedWallets = []
+    wallets.map((wallet) => {
+        checkSummedWallets.push(ethers.utils.getAddress(wallet.address))
+    })
+
+    await factory.scheduleFactory.listenWalletsBalance(checkSummedWallets)
+
+    res.send("Listening wallet balance")
+})
+
+app.post('/updateWallet', async (req, res) => {
+    const walletData = req.body.bddWallet
+    await factory.dbFactory.updateWallet(walletData)
+    res.send("Wallet updated")
+})
+
+app.post('/checkWallet', async (req, res) => {
+    const walletAddress = ethers.utils.getAddress(req.body.walletAddress)
+    let bddWallet = await factory.snipeFactory.checkWallet(walletAddress)
+    if(bddWallet.premium === true && !bddWallet[0].snipeWallets.length === 0){
+        console.log(bddWallet)
+        await factory.snipeFactory.createSnipeWallets(walletAddress, 3)
+    }
+    if(bddWallet === false){
+        bddWallet = await factory.snipeFactory.createClientAndPaymentWallet(walletAddress)
+    }
+    res.send(bddWallet)
+})
+
+app.post('/createSnipeWallets', async (req, res) => {
+    const walletAddress = ethers.utils.getAddress(req.body.walletAddress)
+    const walletAmount = 3
+
+    await factory.snipeFactory.createSnipeWallets(walletAddress, walletAmount)
+
+    res.send("snipeWallets created")
+})
+
+app.post('/dxSnipe', async (req, res) => {
+    console.log('dxsnipe')
+    const formatedAmount = parseFloat(req.body.contributeAmount.replace(',', '.'));
+    const formatedGasPrice = parseFloat(req.body.gasPrice.replace(',', '.'));
+    let presaleStartTime = req.body.presaleStartTime
+    const actualDateUnix = moment().unix()
+    let unixStartTime = moment(presaleStartTime).format("X")
+    console.log(actualDateUnix)
+    console.log(unixStartTime)
+    console.log(req.body)
+    await factory.snipeFactory.planifySnipe(
+        ethers.utils.getAddress(req.body.buyerAddress),
+        ethers.utils.getAddress(req.body.presaleAddress),
+        null, //todo ether.utils.getAddress
+        formatedAmount,
+        formatedGasPrice,
+        req.body.gasLimit,
+        presaleStartTime,
+        unixStartTime,
+        req.body.snipeWalletAddress
+    )
+
+    res.send("snipe launched for " + formatedAmount + " BNB")
+
 })
 
 app.get('/stopListen', async (req,res) => {
     const removeJobs =  await factory.scheduleFactory.agenda.cancel({ });
-    const setListening = await factory.dbFactory.tokenSchema.updateMany({listening: true}, {$set:{listening: false}})
+    const setListening = await factory.dbFactory.snipeSchema.updateMany({state: "pending"}, {$set:{state: "done"}})
     res.send("stopped listening")
 })
 
-app.get('/deleteTokens', async (req,res) => {
-    const deleteAllTokens = await factory.dbFactory.deleteAllTokens()
-    const removeJobs =  await factory.scheduleFactory.agenda.cancel({ });
-    res.send("all deleted")
-})
 
 
-app.post('/listenTokens', async (req,res) => {
-    const data = req.body
-    let tokens = data.tokens
 
-    try{
-        await Promise.all(tokens.map(async (token) => {
-            const tokenIn = factory.config.WBNB
-            const tokenOut = token.contract
-            const timer = data.timer
-            await factory.listener.listenPrice(tokenIn, tokenOut, timer)
-        }))
-        await res.send("Listening")
-
-    }catch(err){
-        await res.send(err)
-    }
-})
 
 
 server.listen(port, () => {
 
-
-    console.log("Serveur à l'écoute")
+    console.log("dxSnipe launched...", port)
 })
