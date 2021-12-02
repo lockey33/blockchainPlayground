@@ -56,7 +56,7 @@ export default class SwapFactory {
     }
 
     async buyFast(tokenIn, tokenOut, value, allowedSlippage, gasPrice, gasLimit, feeOnTransfer, estimateBuy = false, tryAmount = 0){
-
+        console.log('buying')
         const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
         const tokenOutDecimals = await this.contractManager.callContractMethod(tokenOutContractInstance, "decimals")
 
@@ -119,6 +119,8 @@ export default class SwapFactory {
                     chainId: 56,
                     data: swapData
                 }
+
+                console.log(rawTransaction)
 
                 let simulateTransaction = await this.config.web3.eth.call(rawTransaction)
                 console.log(simulateTransaction)

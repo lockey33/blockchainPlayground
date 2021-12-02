@@ -83,10 +83,19 @@ export default class AccountFactory {
     }
 
     async getAccountBalance(){
+        console.log('here', this.config.recipient)
         let balance = await this.config.provider.getBalance(this.config.recipient)
         console.log('account balance', balance)
         return balance
     }
+
+    async getPreciseAccountBalance(config){
+        console.log(config.recipient)
+        let balance = await config.provider.getBalance(config.recipient)
+        console.log('account balance', balance)
+        return balance
+    }
+
 
     async getAllowance(contract){
         const allowance = this.contractManager.callContractMethod(contract, 'allowance')

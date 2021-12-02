@@ -20,17 +20,26 @@ export default class globalFactory {
         switch(mode){
             case "prod":
                 let prodConfig = prodBscConfig
-                let accountConfig = prodBscAccount[accountName]
 
-                if(blockchain === "kcc"){
-                    prodConfig = prodKccConfig
-                    accountConfig = prodKccAccount[accountName]
+                if(Array.isArray(accountName)){
+                    this.config = prodConfig
+                    this.config.accounts = []
+                    for(const account of accountName){
+                        let accountConfig = prodBscAccount[account]
+                        this.config.accounts[account] = {}
+                        this.config.accounts[account].privateKey = accountConfig.privateKey
+                        this.config.accounts[account].recipient = accountConfig.address
+                        this.config.accounts[account].signer = new ethers.Wallet(accountConfig.privateKey, this.config.provider)
+                    }
+
+                }else{
+                    let accountConfig = prodBscAccount[accountName]
+                    this.config = prodConfig
+                    this.config.privateKey = accountConfig.privateKey
+                    this.config.recipient = accountConfig.address
+                    this.config.signer = new ethers.Wallet(accountConfig.privateKey, this.config.provider)
                 }
-                console.log(accountConfig)
-                this.config = prodConfig
-                this.config.privateKey = accountConfig.privateKey
-                this.config.recipient = accountConfig.address
-                this.config.signer = new ethers.Wallet(accountConfig.privateKey, this.config.provider)
+                //console.log(this.config.accounts)
                 break;
             case "default":
                 break;

@@ -5,6 +5,7 @@ import PANCAKE from "./abis/pancake.js";
 import moment from "moment";
 import uniqid from "uniqid";
 import axios from "axios";
+import ethers from "ethers";
 const mongoConnectionString = "mongodb://localhost:27017/frontMoney"
 
 
@@ -20,6 +21,35 @@ export default class scheduleFactory {
         this.agenda = new Agenda({ db: { address: mongoConnectionString, collection: "agendaJobs", maxConcurrency: 20, defaultConcurrency: 5 } })
         this.accountManager = accountManager
         this.swap = swap
+    }
+
+    async multiSnipeFairLaunch(snipeObject){
+        Object.entries(this.config.accounts).map(async([accountName,account]) => {
+            const WBNB = this.config.WBNB
+            this.config.privateKey = account.privateKey
+            this.config.recipient = account.recipient
+            this.config.signer = new ethers.Wallet(this.config.privateKey, this.config.provider)
+            const balanceTokenIn = await this.accountManager.getAccountBalance()
+            let tryAmount = 0
+            const waitLiquidity = setInterval(async() => {
+                tryAmount++
+                let liquidity = await this.contractManager.checkLiquidity( balanceTokenIn, WBNB, snipeObject.tokenToSnipe)
+                console.log("Nombre d'itérations :", tryAmount, liquidity)
+                if(liquidity !== false){
+                    clearInterval(waitLiquidity)
+                    try{
+                        console.log('achat en cours')
+                        await this.swap.buyFast(WBNB, snipeObject.tokenToSnipe, snipeObject.buyValue, snipeObject.buySlippage, snipeObject.buyGas, snipeObject.gasLimit, true, snipeObject.estimateBuy)
+                    }catch(buyErr){
+                        console.log('erreur achat', buyErr)
+                    }
+                    //const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
+                    //await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
+                }
+
+            },3000)
+        })
+
     }
 
     async snipeFairLaunch(snipeObject){
@@ -38,8 +68,8 @@ export default class scheduleFactory {
                 }catch(buyErr){
                     console.log('erreur achat', buyErr)
                 }
-                const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
-                await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
+                //const increased = await this.swap.listenPriceOfCoin("sell", WBNB, snipeObject.tokenToSnipe, "Sniping", snipeObject.targetIncrease, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true, snipeObject.goOut)
+                //await this.swap.swap("sell",snipeObject.tokenToSnipe, WBNB, snipeObject.sellValue, snipeObject.sellSlippage, snipeObject.sellGas, snipeObject.gasLimit, true)
             }
 
         },3000)
