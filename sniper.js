@@ -16,18 +16,18 @@ const require = createRequire(import.meta.url);
 
     const snipeObject = {
         tokenToSnipe: tokenToSnipe,
-        gasLimit : 4500000,
+        gasLimit : 5000000,
 
-        targetIncrease : 1000,
-        buyValue : 0.02,
+        targetIncrease : 500,
+        buyValue : 0.3,
         buySlippage : 5000,
-        buyGas : 20,
+        buyGas : 40,
 
         estimateBuy : false,
 
         sellValue : 500,
-        sellSlippage : 50,
-        sellGas : 10,
+        sellSlippage : 100,
+        sellGas : 25,
         goOut: -20
     }
 

@@ -2,13 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sshConfigs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sshConfigs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dxSnipe.js" beforeDir="false" afterPath="$PROJECT_DIR$/dxSnipe.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/listenerFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/listenerFactory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factory/scheduleFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/scheduleFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/refacto.js" beforeDir="false" afterPath="$PROJECT_DIR$/refacto.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/accounts.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/projectMode/prod/accounts.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/multisnipe.js" beforeDir="false" afterPath="$PROJECT_DIR$/multisnipe.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sniper.js" beforeDir="false" afterPath="$PROJECT_DIR$/sniper.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trade.js" beforeDir="false" afterPath="$PROJECT_DIR$/trade.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +27,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="1sOzkWPQa9bMlTYntS4XyLEBvLZ" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -110,6 +113,13 @@
       <workItem from="1625314530780" duration="3362000" />
       <workItem from="1625410942555" duration="5990000" />
       <workItem from="1625524665529" duration="641000" />
+      <workItem from="1638485060328" duration="453000" />
+      <workItem from="1638549535897" duration="1335000" />
+      <workItem from="1638726353272" duration="1114000" />
+      <workItem from="1639500572680" duration="1877000" />
+      <workItem from="1639670409839" duration="10980000" />
+      <workItem from="1639749084777" duration="2269000" />
+      <workItem from="1640015992298" duration="613000" />
     </task>
     <servers />
   </component>
@@ -126,6 +136,15 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/trade.js</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
