@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/sshConfigs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sshConfigs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/scheduleFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/scheduleFactory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/multisnipe.js" beforeDir="false" afterPath="$PROJECT_DIR$/multisnipe.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sniper.js" beforeDir="false" afterPath="$PROJECT_DIR$/sniper.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/bsc/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/projectMode/prod/bsc/config.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/trade.js" beforeDir="false" afterPath="$PROJECT_DIR$/trade.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -120,6 +117,7 @@
       <workItem from="1639670409839" duration="10980000" />
       <workItem from="1639749084777" duration="2269000" />
       <workItem from="1640015992298" duration="613000" />
+      <workItem from="1640194087366" duration="2237000" />
     </task>
     <servers />
   </component>
@@ -136,15 +134,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/trade.js</url>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

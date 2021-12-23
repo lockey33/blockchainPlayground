@@ -14,16 +14,17 @@ import GlobalFactory from "./factory/globalFactory.js";
     let buySlippage = 2 // BUY SLIPPAGE
     let buyGas = 5 // BUY GAS
 
-    let sellValue = 100 //SELL VALUE
-    let sellSlippage = 5 // SELL SLIPPAGE
-    let sellGas = 30
+    let sellValue = 10 //SELL VALUE
+    let sellSlippage = 2 // SELL SLIPPAGE
+    let sellGas = 45
 
 
-    let token1 = ethers.utils.getAddress("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c")
-    let token2 = ethers.utils.getAddress("0x247f7ad24a2a21ba3ae475fb0114528c916ea3e4")
+    let token1 = ethers.utils.getAddress("0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")
+    let token2 = ethers.utils.getAddress("0xc7198437980c041c805a1edcba50c1ce5db95118")
     //console.log(factory)
     //await factory.swap.swap("buy", token1, token2, buyValue, buySlippage, buyGas, gasLimit, true)
-    const increased = await factory.swap.listenPriceOfCoin("sell", token1, token2, "IGO", 50, sellValue, sellSlippage, sellGas, gasLimit, true)
+    await factory.swap.swap("sell", token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
+/*    const increased = await factory.swap.listenPriceOfCoin("sell", token1, token2, "IGO", 50, sellValue, sellSlippage, sellGas, gasLimit, true)
     let i = 0;
     try{
         await factory.swap.swap("sell", token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
@@ -33,5 +34,5 @@ import GlobalFactory from "./factory/globalFactory.js";
         if(i < 4){
             await factory.swap.swap("sell", token2, token1, sellValue, sellSlippage, sellGas, gasLimit, true)
         }
-    }
+    }*/
 })()

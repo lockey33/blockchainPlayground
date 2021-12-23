@@ -27,7 +27,6 @@ export default class SwapFactory {
 
         let pair = await Fetcher.fetchPairData(inputTokenInstance, outputTokenInstance, this.config.provider)
         const route = new Route([pair], WETHs[inputTokenInstance.chainId])
-
         let pairData = {
             tokenPriceInBnb: route.midPrice.toSignificant(6), // 1 token = tant de bnb
             bnbPriceForOneToken: route.midPrice.invert().toSignificant(6), // 1 bnb = tant de tokens
