@@ -18,20 +18,24 @@ const require = createRequire(import.meta.url);
         tokenToSnipe: tokenToSnipe,
         gasLimit : 5000000,
 
-        targetIncrease : 500,
-        buyValue : 0.3,
-        buySlippage : 5000,
-        buyGas : 40,
+        targetIncrease : 1000,
+        buyValue : 0.1,
+        buySlippage : 1000,
+        buyGas : 30,
 
         estimateBuy : false,
 
-        sellValue : 500,
-        sellSlippage : 100,
-        sellGas : 25,
+        sellValue : 50,
+        sellSlippage : 60,
+        sellGas : 50,
         goOut: -20
     }
 
 
+    let gasValue = snipeObject.buyGas * Math.pow(10, -9)
+    let maxBnbForGas = gasValue * snipeObject.gasLimit
+    console.log(gasValue)
+    console.log('max bnb for gas :', maxBnbForGas)
     await factory.scheduleFactory.snipeFairLaunch(snipeObject)
 })();
 

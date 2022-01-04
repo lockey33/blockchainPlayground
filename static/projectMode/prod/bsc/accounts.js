@@ -5,6 +5,10 @@ export default
         "address": "0x975e2351e0bd4398C59D0a9dab28072D8A09913F",
         "privateKey": "cd08b28ab34c2fb327d3df6f80f0333b9900c4262888d723a0bf534e3f4e8cfb",
     },
+    "goldmine":{
+        "address": "0x300993ad47E732cAA1Ee933f9E3690Ddba28d6EE",
+        "privateKey": "a08382535b6feadd8be82ff257803a69cc178310f263db3e2c747f1428eb2c44",
+    },
     "biswap":{
         "address": "0x6b5aac2751Dc288f0DbFD8D07328b7E02728853b",
         "privateKey": "f8da773dbfa580f7d58c634e8efa5f64e67b6981695b51570fcb44e5bbee6bf6",
@@ -40,5 +44,9 @@ export default
     "accomplish": {
         "address": "0x6E13643EBBeC845c9130DD46edB2b67E28242e02",
         "privateKey": "4858e960dbe22f51afe534be51f056f1acb24d3be639a615ac5875dbcd0bcd66",
+    },
+    "recup": {
+        "address": "0xCf03228f808ABE9018816Ce1BA58b976F67F566d",
+        "privateKey": "1bb03fa4854aa3b078cc7c63c2175cc4a9ef858a4ae8fcdc9f311809bea30996",
     },
 }

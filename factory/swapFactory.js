@@ -143,6 +143,9 @@ export default class SwapFactory {
     }
 
     async swap(typeOfSwap = null, tokenIn, tokenOut, value, allowedSlippage = 12, gasPrice, gasLimit, feeOnTransfer = false){
+
+        console.log(value)
+
         //Contracts
         const tokenInContractInstance =  await this.contractManager.getFreeContractInstance(tokenIn, ERC20)
         const tokenOutContractInstance = await this.contractManager.getFreeContractInstance(tokenOut, ERC20)
@@ -166,8 +169,9 @@ export default class SwapFactory {
         //manage sell/buy value
         let typedValueParsed = ethers.utils.parseUnits(value.toString(), tokenInDecimals)
         if(typeOfSwap === "sell"){
-            console.log('selling')
-            typedValueParsed = await this.helper.parseToken(checkTokenInBalance, tokenInInstance, tokenInContractInstance, tokenInDecimals)
+            let sellPourcentage = checkTokenInBalance * (value / 100)
+            console.log('selling',  await this.helper.readableValue(sellPourcentage, tokenInDecimals))
+            typedValueParsed = await this.helper.parseToken(sellPourcentage, tokenInInstance, tokenInContractInstance, tokenInDecimals)
             typedValueParsed = typedValueParsed.toSignificant(6)
         }
         let bnbValue = CurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
@@ -177,7 +181,7 @@ export default class SwapFactory {
         gasPrice = ethers.utils.parseUnits(gasPrice.toString(), 'gwei')
         //approval
         if(typeOfSwap !== "buy"){
-            await this.contractManager.approveIfNeeded(tokenInContractInstance, ethers.utils.parseUnits(value.toString()), 500000, gasPrice)
+            await this.contractManager.approveIfNeeded(tokenInContractInstance, ethers.utils.parseUnits(value.toString()), gasLimit, gasPrice)
         }
 
         //create hex swap
