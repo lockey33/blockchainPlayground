@@ -1,20 +1,14 @@
 import GlobalFactory from "./factory/globalFactory.js"
-import myAccounts from "./static/projectMode/prod/bsc/accounts.js";
 import ethers from "ethers";
-import PANCAKE from "./factory/abis/pancake.js";
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 
 
 (async () => {
-    const resolve = require('path').resolve
-    const nodemailer = require('nodemailer');
-    const balanceTokenIn = ethers.utils.parseUnits("1", "ether")
-    const factory =  new GlobalFactory("prod", "biswap")
+    const factory =  new GlobalFactory("prod", "banque")
     await factory.init()
     let params = process.argv.slice(2)
-    const { exec } = require("child_process");
 
     const tokenToSnipe = await ethers.utils.getAddress(params[0])
 
@@ -22,38 +16,26 @@ const require = createRequire(import.meta.url);
 
     const snipeObject = {
         tokenToSnipe: tokenToSnipe,
-        gasLimit : 5000000,
+        gasLimit : 3000000,
 
-        targetIncrease : 500,
-        buyValue : 0.05,
-        buySlippage : 80,
-        buyGas : 20,
-
-        estimateBuy : false,
-
-        sellValue : 500,
-        sellSlippage : 50,
-        sellGas : 10,
-        goOut: -20
-    }
-
-
-    const snipeObjectTest = {
-        tokenToSnipe: tokenToSnipe,
-        gasLimit : 5000000,
         targetIncrease : 1000,
-        buyValue : 0.001,
-        buySlippage : 1000,
-        buyGas : 5,
+        buyValue : 1,
+        buySlippage : 50,
+        buyGas : 200,
+
         estimateBuy : false,
 
-        sellValue : 100,
-        sellSlippage : 30,
-        sellGas : 5,
+        sellValue : 50,
+        sellSlippage : 60,
+        sellGas : 50,
         goOut: -20
     }
 
-    await factory.scheduleFactory.snipeFairLaunch(snipeObject)
 
+    let gasValue = snipeObject.buyGas * Math.pow(10, -9)
+    let maxBnbForGas = gasValue * snipeObject.gasLimit
+    console.log(gasValue)
+    console.log('max bnb for gas :', maxBnbForGas)
+    await factory.scheduleFactory.snipeFairLaunch(snipeObject)
 })();
 

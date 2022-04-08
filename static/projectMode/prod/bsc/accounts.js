@@ -49,4 +49,8 @@ export default
         "address": "0xCf03228f808ABE9018816Ce1BA58b976F67F566d",
         "privateKey": "1bb03fa4854aa3b078cc7c63c2175cc4a9ef858a4ae8fcdc9f311809bea30996",
     },
+    "banque": {
+        "address": "0xF58Db561f9B6452feA5fBFA07d69CC91C33719A8",
+        "privateKey": "a482d85b7ea7a9b7ce8621820982c9aa1dd3b05b91ac2d527959d8bd01f5469e",
+    },
 }

@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 
 
 (async () => {
-    const factory =  new GlobalFactory("prod", "cash")
+    const factory =  new GlobalFactory("prod", "banque")
     await factory.init()
     let params = process.argv.slice(2)
 
@@ -16,14 +16,14 @@ const require = createRequire(import.meta.url);
 
     const snipeObject = {
         tokenToSnipe: tokenToSnipe,
-        gasLimit : 5000000,
+        gasLimit : 3000000,
 
         targetIncrease : 1000,
-        buyValue : 0.1,
-        buySlippage : 1000,
-        buyGas : 30,
+        buyValue : 0.0001,
+        buySlippage : 10,
+        buyGas : 5,
 
-        estimateBuy : false,
+        estimateBuy : true,
 
         sellValue : 50,
         sellSlippage : 60,
