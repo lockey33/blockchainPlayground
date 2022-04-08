@@ -3,6 +3,7 @@ import Common from "ethereumjs-common";
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const Tx = require('ethereumjs-tx').Transaction
+
 export default class AccountFactory {
 
     constructor(config, contractManager, helper, dbFactory) {
