@@ -2,18 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9341e898-c9bc-466b-8d28-8feaac4abd82" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/multiSnipe.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pablo.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/richboy.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/biswap.js" beforeDir="false" afterPath="$PROJECT_DIR$/biswapwatcher.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/contractFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/contractFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/scheduleFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/scheduleFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factory/swapFactory.js" beforeDir="false" afterPath="$PROJECT_DIR$/factory/swapFactory.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher.js" beforeDir="false" afterPath="$PROJECT_DIR$/launcher.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sniper.js" beforeDir="false" afterPath="$PROJECT_DIR$/sniper.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/projectMode/prod/bsc/accounts.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/projectMode/prod/bsc/accounts.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/undefined.txt" beforeDir="false" afterPath="$PROJECT_DIR$/undefined.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/0x54626300818E5C5b44Db0fcf45Ba4943CA89A9e2.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/0x965F527D9159dCe6288a2219DB51fc6Eef120dD1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,6 +147,5 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>
